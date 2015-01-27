@@ -53,6 +53,7 @@
     <version.mockito-all>1.10.8</version.mockito-all>
     <version.catch-exception>1.2.0</version.catch-exception>
     <version.guava>13.0.1</version.guava>
+    <version.org.jbpm>6.1.0.Final</version.org.jbpm>
     <version.org.apache.httpcomponents.httpclient>4.3.6</version.org.apache.httpcomponents.httpclient>
     <version.org.apache.httpcomponents.httpcore>4.3.3</version.org.apache.httpcomponents.httpcore>
     <version.org.postgresql>9.3-1102-jdbc41</version.org.postgresql>
@@ -319,6 +320,15 @@
         <artifactId>spring-data-commons</artifactId>
         <version>1.9.2.RELEASE</version>
       </dependency>
+
+
+      <dependency>
+        <groupId>org.jbpm</groupId>
+        <artifactId>jbpm-bom</artifactId>
+        <version>${version.org.jbpm}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>        
 
       <!-- Test dependencies -->
       <dependency>
