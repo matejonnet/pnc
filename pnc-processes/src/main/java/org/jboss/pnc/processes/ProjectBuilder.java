@@ -1,4 +1,4 @@
-package org.jboss.pnc.core.bpm;
+package org.jboss.pnc.processes;
 
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieSession;

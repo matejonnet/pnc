@@ -1,4 +1,4 @@
-package org.jboss.pnc.core.bpm.scratch;
+package org.jboss.pnc.processes.scratch;
 
 import org.jboss.pnc.spi.builddriver.BuildDriver;
 import org.jbpm.bpmn2.xml.XmlBPMNProcessDumper;

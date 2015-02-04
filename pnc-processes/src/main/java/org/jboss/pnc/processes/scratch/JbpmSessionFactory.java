@@ -1,4 +1,4 @@
-package org.jboss.pnc.core.bpm.scratch;
+package org.jboss.pnc.processes.scratch;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-01-09.

@@ -1,17 +1,11 @@
-package org.jboss.pnc.core.bpm;
-
-import org.kie.api.task.TaskService;
-import org.kie.internal.utils.KieHelper;
-
-import javax.inject.Inject;
-import java.io.IOException;
+package org.jboss.pnc.processes;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-01-09.
  */
 public class JbpmSessionFactory {
 
-
+/*
     @Inject
     TaskService taskService;
 
@@ -20,7 +14,7 @@ public class JbpmSessionFactory {
         KieHelper kieHelper = new KieHelper();
                 //.build();
 
-/*
+
         KieSession kieSession = kieBase.newKieSession();
 
         ProcessInstance processInstance = kieSession.startProcess("com.sample.MyProcess");
@@ -28,6 +22,7 @@ public class JbpmSessionFactory {
         RuntimeEnvironmentBuilder runtimeEnvironmentBuilder = RuntimeEnvironmentBuilder.Factory.get().newDefaultBuilder();
 
         taskService.getTasksAssignedAsPotentialOwner()
-*/
+
     }
+*/
 }

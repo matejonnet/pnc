@@ -1,23 +1,13 @@
-package org.jboss.pnc.core.bpm;
-
-import org.kie.api.KieBase;
-import org.kie.api.runtime.KieSession;
-import org.kie.api.runtime.process.WorkItem;
-import org.kie.api.runtime.process.WorkItemHandler;
-import org.kie.api.runtime.process.WorkItemManager;
-import org.kie.internal.io.ResourceFactory;
-import org.kie.internal.utils.KieHelper;
+package org.jboss.pnc.processes;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import java.util.logging.Logger;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-01-28.
  */
 @ApplicationScoped
 public class JBPMSession {
-
+/*
     Logger log = Logger.getLogger(JBPMSession.class.getName());
 
     private final KieSession kieSession;
@@ -64,7 +54,7 @@ public class JBPMSession {
 
 
 
-    /*public JBPMSession() {
+    public JBPMSession() {
         RuntimeEnvironmentBuilder runtimeEnvironmentBuilder = RuntimeEnvironmentBuilder.Factory.get()
                 .newDefaultInMemoryBuilder();
 
@@ -101,7 +91,7 @@ public class JBPMSession {
 //                .build();
         //kieSession = kieBase.newKieSession();
 
-    }*/
+    }
 
     @Produces
     public KieSession getKieSession() {
@@ -117,4 +107,5 @@ public class JBPMSession {
 //    public TaskService getTaskService() {
 //        return runtimeEngine.getTaskService();
 //    }
+    */
 }
