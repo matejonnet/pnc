@@ -1,59 +1,49 @@
 package org.jboss.pnc.processes.test;
 
-import bitronix.tm.resource.jdbc.PoolingDataSource;
-import org.h2.tools.Server;
-
 import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import java.util.Properties;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-02-04.
  */
 public class EntityManagerFactoryProducer {
 
+//    EntityManagerFactory entityManagerFactory;
+
+    public EntityManagerFactoryProducer() {
+//        InitialContext ctx = new InitialContext();
+//        NamingManager.setInitialContextFactoryBuilder();
+//        entityManagerFactory = Persistence.createEntityManagerFactory("org.jbpm.persistence.jpa");
+    }
+
+
     @Produces
     public EntityManagerFactory produceEntityManagerFactory() {
-        startH2Server();
-        setupDataSource();
+//        startH2Server();
+//        setupDataSource();
         return Persistence.createEntityManagerFactory("org.jbpm.persistence.jpa");
     }
 
-    public static Server startH2Server() {
-        try {
-            // start h2 in memory database
-            Server server = Server.createTcpServer(new String[0]);
-            server.start();
-            return server;
-        } catch (Throwable t) {
-            throw new RuntimeException("Could not start H2 server", t);
-        }
-    }
+//    @Produces
+//    public EntityManager produceEntityManager() {
+//        return entityManagerFactory.createEntityManager();
+//    }
 
-    public static PoolingDataSource setupDataSource() {
-        Properties properties = getProperties();
-        // create data source
-        PoolingDataSource pds = new PoolingDataSource();
-        pds.setUniqueName(properties.getProperty("persistence.datasource.name", "jdbc/jbpm-ds"));
-        pds.setClassName("bitronix.tm.resource.jdbc.lrc.LrcXADataSource");
-        pds.setMaxPoolSize(5);
-        pds.setAllowLocalTransactions(true);
-        pds.getDriverProperties().put("user", properties.getProperty("persistence.datasource.user", "sa"));
-        pds.getDriverProperties().put("password", properties.getProperty("persistence.datasource.password", ""));
-        pds.getDriverProperties().put("url", properties.getProperty("persistence.datasource.url", "jdbc:h2:tcp://localhost/~/jbpm-db;MVCC=TRUE"));
-        pds.getDriverProperties().put("driverClassName", properties.getProperty("persistence.datasource.driverClassName", "org.h2.Driver"));
-        pds.init();
-        return pds;
-    }
-
-    public static Properties getProperties() {
-        Properties properties = new Properties();
-        try {
-            properties.load(EntityManagerFactoryProducer.class.getResourceAsStream("/jBPM.properties"));
-        } catch (Throwable t) {
-            new RuntimeException("Cannot load jBPM.properties.", t);
-        }
-        return properties;
-    }
+//    public static void setupInitialcontex() {
+//        String password = "s3cret";
+//        Map<String, String> env = new HashMap<String, String>();
+//        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+//        env.put(Context.PROVIDER_URL, "ldap://localhost:389/dc=userdev,dc=local");
+//        env.put(Context.SECURITY_AUTHENTICATION, "simple");
+//        //env.put(Context.SECURITY_PRINCIPAL, "uid="+ username +"cn=users"); // replace with user DN
+//        env.put(Context.SECURITY_PRINCIPAL, "cn=dcmanager,cn=users,dc=userdev,dc=local"); // replace with user DN
+//        env.put(Context.SECURITY_CREDENTIALS, password);
+//
+//        try {
+//            DirContext ctx = new InitialDirContext(new Hashtable<>(env));
+//        } catch (NamingException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

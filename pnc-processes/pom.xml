@@ -136,6 +136,25 @@
           <artifactId>hibernate-core</artifactId>
           <scope>test</scope>
       </dependency>
+      <dependency>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-entitymanager</artifactId>
+          <version>4.2.1.Final</version>
+      </dependency>
+
+      <!-- JPA annotation processor -->
+      <dependency>
+          <groupId>org.hibernate</groupId>
+          <artifactId>hibernate-jpamodelgen</artifactId>
+          <version>1.2.0.Final</version>
+          <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>simple-jndi</groupId>
+        <artifactId>simple-jndi</artifactId>
+        <version>0.11.4.1</version>
+      </dependency>
 
     <!-- Test coverage -->
     <dependency>
