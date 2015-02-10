@@ -1,9 +1,12 @@
 package org.jboss.pnc.processes;
 
+import org.jbpm.services.task.identity.JBossUserGroupCallbackImpl;
 import org.kie.api.KieBase;
+import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.manager.RuntimeEnvironmentBuilder;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.manager.RuntimeManagerFactory;
+import org.kie.api.task.UserGroupCallback;
 import org.kie.internal.io.ResourceFactory;
 import org.kie.internal.utils.KieHelper;
 
@@ -11,6 +14,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
+import java.util.Properties;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-02-04.
@@ -30,14 +34,29 @@ public class RuntimeManagerProducer {
 
         KieHelper kieHelper = new KieHelper();
         KieBase kieBase = kieHelper
-                .addResource(ResourceFactory.newClassPathResource("org.jboss.pnc/default-build.bpmn"))
+                .addResource(ResourceFactory.newClassPathResource("org.jboss.pnc/default-build2.bpmn2"), ResourceType.BPMN2)
+//                .addResource(ResourceFactory.newClassPathResource("org.jboss.pnc/default-build.bpmn" ))
                 .build();
 
         RuntimeEnvironmentBuilder builder = RuntimeEnvironmentBuilder.Factory.get()
                 .newDefaultBuilder().entityManagerFactory(entityManagerFactory)
                 .knowledgeBase(kieBase);
 
-        return RuntimeManagerFactory.Factory.get()
+        Properties properties= new Properties();
+        properties.setProperty("mary", "project-tag-editor");
+        properties.setProperty("john", "project-config-editor");
+        UserGroupCallback userGroupCallback = new JBossUserGroupCallbackImpl(properties);
+        builder.userGroupCallback(userGroupCallback);
+
+        RuntimeManager runtimeManager = RuntimeManagerFactory.Factory.get()
                 .newSingletonRuntimeManager(builder.get(), "org.jboss.pnc:bpm-manager:1.0");
+
+
+
+        //runtimeManager.getRuntimeEngine(null).getKieSession().getWorkItemManager().registerWorkItemHandler("Service Task", new ServiceTaskHandler());
+        runtimeManager.getRuntimeEngine(null).getKieSession().getWorkItemManager().registerWorkItemHandler("Service Task", new AsyncServiceTaskHandler());
+
+        return runtimeManager;
     }
+
 }

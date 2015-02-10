@@ -19,7 +19,6 @@ import org.kie.api.task.TaskService;
 import org.kie.api.task.model.TaskSummary;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +47,11 @@ public class BpmTest {
                 .addPackage(EntityManagerFactoryProducer.class.getPackage())
                 .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsManifestResource(EmptyAsset.INSTANCE, "kproject.xml")
-                //.addAsManifestResource("META-INF/test-persistence.xml", "persistence.xml")
-                .addAsManifestResource("META-INF/persistence.xml")
-                .addAsManifestResource("META-INF/Taskorm.xml")
-                .addAsManifestResource("META-INF/TaskAuditorm.xml")
+                .addAsResource("META-INF/persistence.xml")
+                .addAsResource("META-INF/Taskorm.xml")
+                .addAsResource("META-INF/TaskAuditorm.xml")
                 .addAsResource("META-INF/logging.properties")
-                .addAsResource("org.jboss.pnc/default-build.bpmn")
+                //.addAsResource("org.jboss.pnc/default-build2.bpmn2")
                 .addAsResource("jndi.properties")
                 .addAsResource("jBPM.properties");
 
@@ -76,12 +74,9 @@ public class BpmTest {
 //        log.info("Process name: " + processInstance.getProcessName());
 //        log.info("Process state: " + processInstance.getState());
 //
-////        List<Long> tasksByProcessInstanceId = taskService.getTasksByProcessInstanceId(processInstance.getId());
-////        tasksByProcessInstanceId.forEach((taskId) -> log.info("Task id: " + taskId));
+//        List<Long> tasksByProcessInstanceId = taskService.getTasksByProcessInstanceId(processInstance.getId());
+//        tasksByProcessInstanceId.forEach((taskId) -> log.info("Task id: " + taskId));
 //    }
-
-    @Inject
-    EntityManagerFactory entityManagerFactory;
 
     @Inject
     RuntimeManager runtimeManager;
@@ -94,7 +89,10 @@ public class BpmTest {
         TaskService taskService = engine.getTaskService();
 
         Map<String, Object> params = new HashMap<>();
-        ProcessInstance processInstance = kieSession.startProcess("org.jboss.pnc.DefaultBuild", params);
+//        ProcessInstance processInstance = kieSession.startProcess("org.jboss.pnc.DefaultBuild", params);
+        ProcessInstance processInstance = kieSession.startProcess("org.jboss.pnc.defaultbuild2", params);
+
+        System.out.println("Tasks in proc:" + taskService.getTasksByProcessInstanceId(processInstance.getId()));
 
         // let john execute Task 1
         List<TaskSummary> list = taskService.getTasksAssignedAsPotentialOwner("john", "en-UK");
@@ -104,11 +102,11 @@ public class BpmTest {
         taskService.complete(task.getId(), "john", null);
 
         // let mary execute Task 2
-//        list = taskService.getTasksAssignedAsPotentialOwner("mary", "en-UK");
-//        task = list.get(0);
-//        System.out.println("Mary is executing task " + task.getName());
-//        taskService.start(task.getId(), "mary");
-//        taskService.complete(task.getId(), "mary", null);
+        list = taskService.getTasksAssignedAsPotentialOwner("mary", "en-UK");
+        task = list.get(0);
+        System.out.println("Mary is executing task " + task.getName());
+        taskService.start(task.getId(), "mary");
+        taskService.complete(task.getId(), "mary", null);
 
         runtimeManager.disposeRuntimeEngine(engine);
     }

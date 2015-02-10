@@ -9,12 +9,10 @@
     <persistence-unit name="org.jbpm.persistence.jpa" transaction-type="JTA">
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
         <jta-data-source>jdbc/jbpm-ds</jta-data-source>
+
+        <mapping-file>META-INF/JBPMorm.xml</mapping-file>
         <mapping-file>META-INF/Taskorm.xml</mapping-file>
         <mapping-file>META-INF/TaskAuditorm.xml</mapping-file>
-
-        <!--<mapping-file>META-INF/JBPMorm.xml</mapping-file>-->
-        <!--<mapping-file>META-INF/Taskorm.xml</mapping-file>-->
-        <!--<mapping-file>META-INF/TaskAuditorm.xml</mapping-file>-->
 
         <class>org.jbpm.persistence.processinstance.ProcessInstanceInfo</class>
         <class>org.drools.persistence.info.SessionInfo</class>
@@ -60,7 +58,8 @@
 
         <properties>
             <property name="hibernate.max_fetch_depth" value="3"/>
-            <property name="hibernate.hbm2ddl.auto" value="update" />
+            <!--<property name="hibernate.hbm2ddl.auto" value="update" />-->
+            <property name="hibernate.hbm2ddl.auto" value="create-drop" />
             <property name="hibernate.show_sql" value="false" />
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
 
