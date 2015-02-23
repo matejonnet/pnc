@@ -1,4 +1,4 @@
-package org.jboss.pnc.processes;
+package org.jboss.pnc.processes.handlers;
 
 import org.kie.api.runtime.process.WorkItem;
 import org.kie.api.runtime.process.WorkItemManager;

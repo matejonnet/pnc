@@ -1,4 +1,6 @@
-package org.jboss.pnc.processes;
+package org.jboss.pnc.processes.tasks;
+
+import org.jboss.pnc.processes.handlers.ServiceTaskCompleteHandler;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-02-06.

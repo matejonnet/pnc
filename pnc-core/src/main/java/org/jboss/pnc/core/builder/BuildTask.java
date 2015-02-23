@@ -50,8 +50,16 @@ public class BuildTask {
         this.statusUpdateListeners.add(statusUpdateListener);
     }
 
+    public void unregisterStatusUpdateListener(Consumer<BuildStatus> statusUpdateListener) {
+        this.statusUpdateListeners.remove(statusUpdateListener);
+    }
+
     public void registerLogConsumer(Consumer<String> logConsumer) {
         this.logConsumers.add(logConsumer);
+    }
+
+    public void unregisterLogConsumer(Consumer<String> logConsumer) {
+        this.logConsumers.remove(logConsumer);
     }
 
     public void setStatus(BuildStatus status) {

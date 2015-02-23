@@ -1,4 +1,4 @@
-package org.jboss.pnc.processes;
+package org.jboss.pnc.processes.handlers;
 
 import org.jboss.logging.Logger;
 import org.jbpm.bpmn2.handler.ServiceTaskHandler;
@@ -27,7 +27,6 @@ public class AsyncServiceTaskHandler extends ServiceTaskHandler {
             Class<?> c = Class.forName(service);
             Constructor<?> constructor = c.getConstructor(ServiceTaskCompleteHandler.class);
             Object instance = constructor.newInstance(new ServiceTaskCompleteHandler(manager, workItem));
-            //Object instance = c.newInstance();
             Class<?>[] classes = null;
             Object[] params = null;
             if (parameterType != null) {

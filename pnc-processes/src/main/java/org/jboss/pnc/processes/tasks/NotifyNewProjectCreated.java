@@ -1,4 +1,4 @@
-package org.jboss.pnc.processes;
+package org.jboss.pnc.processes.tasks;
 
 import org.kie.api.runtime.process.ProcessContext;
 
@@ -7,6 +7,8 @@ import org.kie.api.runtime.process.ProcessContext;
  * org.jboss.pnc.processes.NotifyNewProjectCreated.NEW_INSTANCE(kcontext);
  *
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-02-06.
+ *
+ * @Deprecated used only as example
  */
 public class NotifyNewProjectCreated {
 

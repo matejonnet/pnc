@@ -1,13 +1,12 @@
 package org.jboss.pnc.processes.test;
 
-import bitronix.tm.resource.jdbc.PoolingDataSource;
-import org.h2.tools.Server;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.pnc.processes.RuntimeManagerProducer;
+import org.jboss.pnc.processes.runtimeproducers.RuntimeManagerProducer;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,22 +15,28 @@ import org.kie.api.runtime.manager.RuntimeEngine;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.api.task.TaskService;
+import org.kie.api.task.model.Status;
 import org.kie.api.task.model.TaskSummary;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-01-29.
  */
 @RunWith(Arquillian.class)
-public class BpmTest {
+public class BpmTest extends BpmTestBase {
 
     private static final Logger log = Logger.getLogger(BpmTest.class.getName());
+
+    public static final String PROCESS_ID = "org.jboss.pnc.defaultbuild2";
+    public static final String LANGUAGE = "en-UK";
 
     @BeforeClass
     public static void setUp() {
@@ -88,66 +93,55 @@ public class BpmTest {
         KieSession kieSession = engine.getKieSession();
         TaskService taskService = engine.getTaskService();
 
-        Map<String, Object> params = new HashMap<>();
-//        ProcessInstance processInstance = kieSession.startProcess("org.jboss.pnc.DefaultBuild", params);
-        ProcessInstance processInstance = kieSession.startProcess("org.jboss.pnc.defaultbuild2", params);
+        Collection<ProcessInstance> processInstances = kieSession.getProcessInstances();
+        Assert.assertEquals(processInstances.size(), 0);
 
-        System.out.println("Tasks in proc:" + taskService.getTasksByProcessInstanceId(processInstance.getId()));
+        Map<String, Object> params = new HashMap<>();
+        ProcessInstance processInstance = kieSession.startProcess(PROCESS_ID, params);
+
+        Collection<ProcessInstance> processInstancesAfterStart = kieSession.getProcessInstances();
+        Assert.assertEquals(processInstancesAfterStart.size(), 1);
+
+        ProcessInstance processInstance1 = processInstancesAfterStart.stream()
+                .filter(pi -> pi.getProcessId().equals(PROCESS_ID))
+                .collect(Collectors.toList()).get(0);
+        Assert.assertEquals("", processInstance, processInstance1);
+
+        List<Long> completedTasks = taskService.getTasksByProcessInstanceId(processInstance.getId());
+        System.out.println("Tasks in proc:" + completedTasks);
+
+        Assert.assertEquals(completedTasks.size(), 1);
+        Assert.assertEquals(taskService.getTaskById(completedTasks.get(completedTasks.size() - 1)).getName(), "Basic Config");
+
+        List<Status> filterReady = new ArrayList<>();
+        filterReady.add(Status.Ready);
+        List<TaskSummary> tasksReady = taskService
+                .getTasksByStatusByProcessInstanceId(processInstance.getId(), filterReady, LANGUAGE);
+
+        Assert.assertEquals(tasksReady.size(), 1);
+        TaskSummary humanTaskWaiting = tasksReady.get(0);
+
+        List<TaskSummary> list = taskService.getTasksAssignedAsPotentialOwner("john", LANGUAGE);
+        TaskSummary taskForJohn = list.get(0);
+
+        Assert.assertEquals("", humanTaskWaiting, taskForJohn);
 
         // let john execute Task 1
-        List<TaskSummary> list = taskService.getTasksAssignedAsPotentialOwner("john", "en-UK");
-        TaskSummary task = list.get(0);
-        System.out.println("John is executing task " + task.getName());
-        taskService.start(task.getId(), "john");
-        taskService.complete(task.getId(), "john", null);
+        System.out.println("John is executing task " + taskForJohn.getName());
+        taskService.start(taskForJohn.getId(), "john");
+        taskService.complete(taskForJohn.getId(), "john", null);
 
         // let mary execute Task 2
-        list = taskService.getTasksAssignedAsPotentialOwner("mary", "en-UK");
-        task = list.get(0);
-        System.out.println("Mary is executing task " + task.getName());
-        taskService.start(task.getId(), "mary");
-        taskService.complete(task.getId(), "mary", null);
+        list = taskService.getTasksAssignedAsPotentialOwner("mary", LANGUAGE);
+        taskForJohn = list.get(0);
+        System.out.println("Mary is executing task " + taskForJohn.getName());
+        taskService.start(taskForJohn.getId(), "mary");
+        taskService.complete(taskForJohn.getId(), "mary", null);
 
         runtimeManager.disposeRuntimeEngine(engine);
     }
 
-    public static Server startH2Server() {
-        try {
-            // start h2 in memory database
-            Server server = Server.createTcpServer(new String[0]);
-            server.start();
-            return server;
-        } catch (Throwable t) {
-            throw new RuntimeException("Could not start H2 server", t);
-        }
-    }
 
-    public static PoolingDataSource setupDataSource() {
-        Properties properties = getProperties();
-        // create data source
-        PoolingDataSource pds = new PoolingDataSource();
-        pds.setUniqueName(properties.getProperty("persistence.datasource.name", "jdbc/jbpm-ds"));
-//        pds.setUniqueName(properties.getProperty("persistence.datasource.name", "java:/jbpm-ds"));
-        pds.setClassName("bitronix.tm.resource.jdbc.lrc.LrcXADataSource");
-        pds.setMaxPoolSize(5);
-        pds.setAllowLocalTransactions(true);
-        pds.getDriverProperties().put("user", properties.getProperty("persistence.datasource.user", "sa"));
-        pds.getDriverProperties().put("password", properties.getProperty("persistence.datasource.password", ""));
-        pds.getDriverProperties().put("url", properties.getProperty("persistence.datasource.url", "jdbc:h2:tcp://localhost/~/jbpm-db;MVCC=TRUE"));
-        pds.getDriverProperties().put("driverClassName", properties.getProperty("persistence.datasource.driverClassName", "org.h2.Driver"));
-        pds.init();
-        return pds;
-    }
-
-    public static Properties getProperties() {
-        Properties properties = new Properties();
-        try {
-            properties.load(EntityManagerFactoryProducer.class.getResourceAsStream("/jBPM.properties"));
-        } catch (Throwable t) {
-            new RuntimeException("Cannot load jBPM.properties.", t);
-        }
-        return properties;
-    }
 
 
 }

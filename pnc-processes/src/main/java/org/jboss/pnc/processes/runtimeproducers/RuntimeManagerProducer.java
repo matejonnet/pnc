@@ -1,8 +1,10 @@
-package org.jboss.pnc.processes;
+package org.jboss.pnc.processes.runtimeproducers;
 
+import org.jboss.pnc.processes.handlers.AsyncServiceTaskHandler;
 import org.jbpm.services.task.identity.JBossUserGroupCallbackImpl;
 import org.kie.api.KieBase;
 import org.kie.api.io.ResourceType;
+import org.kie.api.runtime.EnvironmentName;
 import org.kie.api.runtime.manager.RuntimeEnvironmentBuilder;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.manager.RuntimeManagerFactory;
@@ -12,8 +14,10 @@ import org.kie.internal.utils.KieHelper;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
+import javax.transaction.TransactionManager;
 import java.util.Properties;
 
 /**
@@ -23,6 +27,9 @@ public class RuntimeManagerProducer {
 
     @PersistenceUnit
     EntityManagerFactory entityManagerFactory;
+
+    @Inject
+    TransactionManager transactionManager;
 
     @Produces
     @ApplicationScoped
@@ -34,12 +41,14 @@ public class RuntimeManagerProducer {
 
         KieHelper kieHelper = new KieHelper();
         KieBase kieBase = kieHelper
-                .addResource(ResourceFactory.newClassPathResource("org.jboss.pnc/default-build2.bpmn2"), ResourceType.BPMN2)
+                .addResource(ResourceFactory.newClassPathResource("org.jboss.pnc/default-build-process.bpmn2"), ResourceType.BPMN2)
 //                .addResource(ResourceFactory.newClassPathResource("org.jboss.pnc/default-build.bpmn" ))
                 .build();
 
         RuntimeEnvironmentBuilder builder = RuntimeEnvironmentBuilder.Factory.get()
-                .newDefaultBuilder().entityManagerFactory(entityManagerFactory)
+                .newDefaultBuilder()
+                .entityManagerFactory(entityManagerFactory)
+                .addEnvironmentEntry(EnvironmentName.TRANSACTION_MANAGER, transactionManager)
                 .knowledgeBase(kieBase);
 
         Properties properties= new Properties();
@@ -50,8 +59,6 @@ public class RuntimeManagerProducer {
 
         RuntimeManager runtimeManager = RuntimeManagerFactory.Factory.get()
                 .newSingletonRuntimeManager(builder.get(), "org.jboss.pnc:bpm-manager:1.0");
-
-
 
         //runtimeManager.getRuntimeEngine(null).getKieSession().getWorkItemManager().registerWorkItemHandler("Service Task", new ServiceTaskHandler());
         runtimeManager.getRuntimeEngine(null).getKieSession().getWorkItemManager().registerWorkItemHandler("Service Task", new AsyncServiceTaskHandler());
