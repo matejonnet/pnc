@@ -2,6 +2,7 @@ package org.jboss.pnc.processes.runtimeproducers;
 
 import org.kie.api.runtime.manager.RuntimeEngine;
 import org.kie.api.runtime.manager.RuntimeManager;
+import org.kie.internal.runtime.manager.cdi.qualifier.Singleton;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
@@ -12,6 +13,7 @@ import javax.inject.Inject;
 public class RuntimeEngineProducer {
 
     @Inject
+    @Singleton
     RuntimeManager runtimeManager;
 
     @Produces

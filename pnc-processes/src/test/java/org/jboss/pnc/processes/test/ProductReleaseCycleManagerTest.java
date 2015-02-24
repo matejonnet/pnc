@@ -8,21 +8,20 @@ import org.jboss.pnc.model.User;
 import org.jboss.pnc.processes.ProductReleaseCycleManager;
 import org.jboss.pnc.processes.TaskStatus;
 import org.jboss.pnc.processes.TaskStatusListener;
-import org.jboss.pnc.processes.handlers.ServiceTaskCompleteHandler;
-import org.jboss.pnc.processes.runtimeproducers.RuntimeManagerProducer;
 import org.jboss.pnc.processes.tasks.BasicProductConfiguration;
 import org.jboss.pnc.processes.tasks.ConfigureRepository;
 import org.jboss.pnc.processes.tasks.RepositoryConfiguration;
-import org.jboss.pnc.processes.tasks.UserTask;
 import org.jboss.pnc.processes.test.mock.DatastoreMock;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kie.api.runtime.manager.RuntimeManager;
+import org.kie.internal.runtime.manager.cdi.qualifier.Singleton;
 
 import javax.inject.Inject;
 import javax.transaction.HeuristicMixedException;
@@ -36,41 +35,52 @@ import java.util.function.Consumer;
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-02-17.
  */
 @RunWith(Arquillian.class)
-public class ProductReleaseCycleManagerTest extends BpmTestBase {
+public class ProductReleaseCycleManagerTest {
 
     private static final Logger log = Logger.getLogger(ProductReleaseCycleManagerTest.class);
 
-    @BeforeClass
-    public static void setUp() {
-        startH2Server();
-        setupDataSource();
-    }
-
     @Deployment
-    public static JavaArchive createDeployment() {
+    public static WebArchive createDeployment() {
 
-        JavaArchive jar = ShrinkWrap.create(JavaArchive.class)
-                .addPackage(RuntimeManagerProducer.class.getPackage())
-                .addPackage(EntityManagerFactoryProducer.class.getPackage())
-                .addPackage(UserTask.class.getPackage())
-                .addPackage(ServiceTaskCompleteHandler.class.getPackage())
-                .addPackage(ProductReleaseCycleManager.class.getPackage())
+        WebArchive war = ShrinkWrap.create(WebArchive.class)
+                .addPackages(true, ProductReleaseCycleManager.class.getPackage())
                 .addPackage(DatastoreMock.class.getPackage())
-                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
+                //.addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsManifestResource(EmptyAsset.INSTANCE, "kproject.xml")
-                .addAsResource("META-INF/persistence.xml")
+                .addAsResource("META-INF/test-persistence.xml", "META-INF/persistence.xml")
                 .addAsResource("META-INF/Taskorm.xml")
                 .addAsResource("META-INF/TaskAuditorm.xml")
                 .addAsResource("META-INF/logging.properties")
-//                .addAsResource("org.jboss.pnc/default-build-process.bpmn2")
-                .addAsResource("jndi.properties")
-                .addAsResource("jBPM.properties");
+                .addAsWebInfResource("META-INF/beans.xml", "beans.xml")
+                .addAsResource("org.jboss.pnc/default-build-process.bpmn2")
+//                .addAsResource("jBPM.properties")
+                .addAsResource("test-ds.xml", "ds.xml");
 
-        System.out.println(jar.toString(true));
-        return jar;
+        JavaArchive[] libs = Maven.configureResolver()
+                .withMavenCentralRepo(true)
+                .loadPomFromFile("/home/matej/workspace/soa-p/pnc/pnc-processes/pom.xml")
+                .importRuntimeDependencies()
+                .resolve()
+//                .withTransitivity()
+                .withoutTransitivity()
+                .as(JavaArchive.class);
+        war.addAsLibraries(libs);
+
+        JavaArchive[] libsDependencies = Maven.configureResolver()
+                .loadPomFromFile("/home/matej/workspace/soa-p/pnc/pnc-processes/src/test/resources/dependencies-pom.xml")
+                .importRuntimeDependencies()
+                .resolve()
+                .withTransitivity()
+                .as(JavaArchive.class);
+        war.addAsLibraries(libs);
+        war.addAsLibraries(libsDependencies);
+
+        System.out.println(war.toString(true));
+        return war;
     }
 
     @Inject
+    @Singleton
     RuntimeManager runtimeManager;
 
     @Inject

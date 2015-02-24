@@ -15,6 +15,7 @@ import org.kie.api.runtime.process.WorkflowProcessInstance;
 import org.kie.api.task.TaskService;
 import org.kie.api.task.model.Status;
 import org.kie.api.task.model.TaskSummary;
+import org.kie.internal.runtime.manager.cdi.qualifier.Singleton;
 
 import javax.inject.Inject;
 import javax.transaction.HeuristicMixedException;
@@ -22,7 +23,6 @@ import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +41,7 @@ public class ProductReleaseCycleManager {
     public static final String PRODUCT_ID = "productId";
 
     @Inject
+    @Singleton
     RuntimeManager runtimeManager;
 
     @Inject
@@ -52,8 +53,8 @@ public class ProductReleaseCycleManager {
     @Inject
     Datastore datastore;
 
-    @Inject
-    TransactionManager transactionManager;
+//    @Inject
+//    TransactionManager transactionManager;
 
     private Set<TaskStatusListener> statusUpdateListeners = new WeakSet();
 
@@ -70,7 +71,7 @@ public class ProductReleaseCycleManager {
             Integer productId = 1;
             product.setId(productId);
 
-            transactionManager.begin();
+//            transactionManager.begin();
 
             ProcessInstance pi = kieSession.startProcess(PROCESS_ID, basicProductConfiguration.getProcessParams());
             ProcessInstance processInstance = kieSession.getProcessInstance(pi.getId());
@@ -79,7 +80,7 @@ public class ProductReleaseCycleManager {
 
             kieSession.addEventListener(new TaskCompleteListener());
 
-            transactionManager.commit();
+//            transactionManager.commit();
             return product;
         } else {
             return null;
