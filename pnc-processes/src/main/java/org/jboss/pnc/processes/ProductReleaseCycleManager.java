@@ -2,37 +2,41 @@ package org.jboss.pnc.processes;
 
 import org.jboss.pnc.common.util.StreamCollectors;
 import org.jboss.pnc.model.Product;
+import org.jboss.pnc.processes.engine.Runtime;
 import org.jboss.pnc.processes.tasks.BasicProductConfiguration;
 import org.jboss.pnc.processes.tasks.UserTask;
-import org.jboss.pnc.spi.datastore.Datastore;
 import org.jboss.util.collection.WeakSet;
 import org.kie.api.event.process.DefaultProcessEventListener;
 import org.kie.api.event.process.ProcessNodeLeftEvent;
 import org.kie.api.runtime.KieSession;
-import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.api.runtime.process.WorkflowProcessInstance;
 import org.kie.api.task.TaskService;
 import org.kie.api.task.model.Status;
 import org.kie.api.task.model.TaskSummary;
-import org.kie.internal.runtime.manager.cdi.qualifier.Singleton;
+import org.kie.internal.KieInternalServices;
+import org.kie.internal.process.CorrelationAwareProcessRuntime;
+import org.kie.internal.process.CorrelationKey;
+import org.kie.internal.process.CorrelationKeyFactory;
 
+import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
+import javax.transaction.TransactionManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2015-02-16.
  */
+//@Stateless
 public class ProductReleaseCycleManager {
 
     public static final String PROCESS_ID = "org.jboss.pnc.defaultbuild2";
@@ -40,21 +44,15 @@ public class ProductReleaseCycleManager {
 
     public static final String PRODUCT_ID = "productId";
 
-    @Inject
-    @Singleton
-    RuntimeManager runtimeManager;
-
-    @Inject
-    KieSession  kieSession;
-
-    @Inject
-    TaskService taskService;
-
-    @Inject
-    Datastore datastore;
-
 //    @Inject
-//    TransactionManager transactionManager;
+//    Datastore datastore;
+
+    @Resource(mappedName = "java:jboss/TransactionManager")
+    private TransactionManager transactionManager;
+
+
+    @Inject
+    Runtime runtime;
 
     private Set<TaskStatusListener> statusUpdateListeners = new WeakSet();
 
@@ -63,38 +61,53 @@ public class ProductReleaseCycleManager {
      * @param basicProductConfiguration
      * @return null if product configuration is not valid
      */
-    public Product startNewProductRelease(BasicProductConfiguration basicProductConfiguration)
-            throws HeuristicRollbackException, RollbackException, HeuristicMixedException, SystemException, NotSupportedException {
+    public Product startNewProductRelease(BasicProductConfiguration basicProductConfiguration) throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
         if (basicProductConfiguration.isValid()) {
+
             //TODO Product product = datastore.createNewProduct(basicProductConfiguration);
             Product product = new Product();
             Integer productId = 1;
             product.setId(productId);
 
-//            transactionManager.begin();
+            KieSession kieSession = getKieSession();
+            transactionManager.begin(); //TODO transaction boundary must be after getKieSession();
 
-            ProcessInstance pi = kieSession.startProcess(PROCESS_ID, basicProductConfiguration.getProcessParams());
-            ProcessInstance processInstance = kieSession.getProcessInstance(pi.getId());
-
-            ((WorkflowProcessInstance) processInstance).setVariable(PRODUCT_ID, productId);
+            ProcessInstance processInstance = ((CorrelationAwareProcessRuntime)kieSession).startProcess(
+                    PROCESS_ID,
+                    getCorrelationKey(productId),
+                    basicProductConfiguration.getProcessParams());
 
             kieSession.addEventListener(new TaskCompleteListener());
 
-//            transactionManager.commit();
+            getAllTasks(processInstance);
+
+            transactionManager.commit();
             return product;
         } else {
             return null;
         }
     }
 
-    public ProcessInstance getProcessInstance(Integer productId) {
+    private CorrelationKey getCorrelationKey(Integer productId) {
+        CorrelationKeyFactory factory = KieInternalServices.Factory.get().newCorrelationKeyFactory();
+        return factory.newCorrelationKey(productId.toString());
+    }
 
-        Predicate<ProcessInstance> findProcess = (ProcessInstance processInstance) -> {
-            Integer piProductId = (Integer) ((WorkflowProcessInstance) processInstance).getVariable(PRODUCT_ID);
-            return productId.equals(piProductId);
-        };
+    private KieSession getKieSession() {
+        return runtime.getKieSession();
+    }
 
-        return kieSession.getProcessInstances().stream().filter(findProcess).collect(StreamCollectors.singletonCollector());
+    private TaskService getTaskService() {
+        return runtime.getTaskService();
+    }
+
+
+    public ProcessInstance getProcessInstance(Integer productId) throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
+        transactionManager.begin(); //TODO transaction boundary must be after getKieSession();
+        KieSession kieSession = getKieSession();
+        ProcessInstance processInstance = ((CorrelationAwareProcessRuntime) kieSession).getProcessInstance(getCorrelationKey(productId));
+        transactionManager.commit();
+        return processInstance;
     }
 
     private int getProductId(ProcessInstance processInstance) {
@@ -103,11 +116,13 @@ public class ProductReleaseCycleManager {
 
     public List<TaskSummary> getAllTasks(ProcessInstance processInstance) {
         List<Status> all = new ArrayList<>(Arrays.asList(Status.values()));
+
+        TaskService taskService = getTaskService();
         return taskService.getTasksByStatusByProcessInstanceId(processInstance.getId(), all, LANGUAGE);
 
     }
 
-    public TaskStatus getTaskStatus(Integer productId, long taskId) {
+    public TaskStatus getTaskStatus(Integer productId, long taskId) throws HeuristicRollbackException, HeuristicMixedException, NotSupportedException, RollbackException, SystemException {
         TaskSummary taskSummary = getTaskById(productId, taskId);
         if (taskSummary != null) {
             return TaskStatus.fromStatus(taskSummary.getStatus());
@@ -116,7 +131,7 @@ public class ProductReleaseCycleManager {
         }
     }
 
-    private TaskSummary getTaskById(Integer productId, long taskId) {
+    private TaskSummary getTaskById(Integer productId, long taskId) throws HeuristicRollbackException, HeuristicMixedException, NotSupportedException, RollbackException, SystemException {
         ProcessInstance processInstance = getProcessInstance(productId);
         if (processInstance != null) {
             List<TaskSummary> allTasks = getAllTasks(processInstance);
@@ -135,7 +150,7 @@ public class ProductReleaseCycleManager {
         statusUpdateListeners.remove(taskStatusListener);
     }
 
-    private void notifyTaskStatusUpdated(Integer productId, long taskId) {
+    private void notifyTaskStatusUpdated(Integer productId, long taskId) throws HeuristicRollbackException, HeuristicMixedException, NotSupportedException, RollbackException, SystemException {
         TaskSummary taskById = getTaskById(productId, taskId);
         Status newStatus = taskById.getStatus();
         List<TaskStatusListener> taskListeners = statusUpdateListeners.stream().filter(l -> l.getTaskId() == taskId)
@@ -143,13 +158,13 @@ public class ProductReleaseCycleManager {
         taskListeners.forEach(l -> l.onStatusUpdate(TaskStatus.fromStatus(newStatus)));
     }
 
-    public void startUserTask(UserTask userTask) {
+    public void startUserTask(UserTask userTask) throws HeuristicRollbackException, HeuristicMixedException, NotSupportedException, RollbackException, SystemException {
         Integer productId = userTask.getProductId();
         Integer taskId = userTask.getTaskId();
         TaskSummary task = getTaskById(productId, taskId);
         userTask.setTask(task);
-        userTask.setTaskService(taskService);
-        taskService.start(taskId, userTask.getUser().getUsername());
+        userTask.setTaskService(getTaskService());
+        getTaskService().start(taskId, userTask.getUser().getUsername());
     }
 
     class TaskCompleteListener extends DefaultProcessEventListener {
@@ -157,8 +172,22 @@ public class ProductReleaseCycleManager {
         public void afterNodeLeft(ProcessNodeLeftEvent event) {
             long taskId = event.getNodeInstance().getId();
             int productId = getProductId(event.getProcessInstance());
-            notifyTaskStatusUpdated(productId, taskId);
+            try {
+                notifyTaskStatusUpdated(productId, taskId);
+            } catch (HeuristicRollbackException e) {
+                //TODO
+                e.printStackTrace();
+            } catch (HeuristicMixedException e) {
+                e.printStackTrace();
+            } catch (NotSupportedException e) {
+                e.printStackTrace();
+            } catch (RollbackException e) {
+                e.printStackTrace();
+            } catch (SystemException e) {
+                e.printStackTrace();
+            }
         }
     }
+
 
 }

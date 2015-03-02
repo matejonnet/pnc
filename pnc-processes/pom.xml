@@ -116,6 +116,11 @@
       <artifactId>drools-persistence-jpa</artifactId>
       <version>6.1.0.Final</version>
     </dependency>
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-human-task-jpa</artifactId>
+      <version>6.1.0.Final</version>
+    </dependency>
 
     <dependency>
       <groupId>javax.inject</groupId>
@@ -186,6 +191,11 @@
       <groupId>org.jacoco</groupId>
       <artifactId>org.jacoco.core</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.spec.javax.ejb</groupId>
+      <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+      <version>1.0.2.Final</version>
     </dependency>
     <!-- /Test coverage -->
   </dependencies>

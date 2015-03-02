@@ -73,7 +73,6 @@
       <artifactId>jbpm-executor</artifactId>
     </dependency>
 
-
     <dependency>
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
@@ -121,6 +120,12 @@
       <scope>test</scope>
     </dependency>
     <!-- /Test dependencies -->
+
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>3.2.1</version>
+    </dependency>
 
   </dependencies>
 
