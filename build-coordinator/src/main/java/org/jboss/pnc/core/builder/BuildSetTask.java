@@ -41,12 +41,12 @@ import java.util.Set;
  */
 public class BuildSetTask {
 
-    private Logger log = LoggerFactory.getLogger(BuildCoordinator.class);
+    private Logger log = LoggerFactory.getLogger(DefaultBuildSetCoordinator.class);
 
     private BuildConfigSetRecord buildConfigSetRecord;
     private ProductMilestone productMilestone;
 
-    private BuildCoordinator buildCoordinator;
+    private BuildSetCoordinator buildCoordinator;
 
     private final BuildExecutionType buildTaskType;
     private Event<BuildSetStatusChangedEvent> buildSetStatusChangedEventNotifier;
@@ -59,7 +59,7 @@ public class BuildSetTask {
     /**
      * Create build set task for running a single build or set of builds
      */
-    public BuildSetTask(BuildCoordinator buildCoordinator, BuildConfigSetRecord buildConfigSetRecord,
+    public BuildSetTask(DefaultBuildSetCoordinator buildCoordinator, BuildConfigSetRecord buildConfigSetRecord,
             BuildExecutionType buildTaskType, ProductMilestone productMilestone) {
         this.buildCoordinator = buildCoordinator;
         this.buildConfigSetRecord = buildConfigSetRecord;

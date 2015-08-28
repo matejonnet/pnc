@@ -19,8 +19,8 @@ package org.jboss.pnc.rest.provider;
 
 import com.google.common.base.Strings;
 
-import org.jboss.pnc.core.builder.BuildCoordinator;
 import org.jboss.pnc.core.builder.BuildTask;
+import org.jboss.pnc.core.builder.BuildSetCoordinator;
 import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationAuditedRest;
@@ -58,7 +58,7 @@ public class BuildRecordProvider {
 
     private BuildRecordRepository buildRecordRepository;
 
-    private BuildCoordinator buildCoordinator;
+    private BuildSetCoordinator buildCoordinator;
 
     private RSQLPredicateProducer rsqlPredicateProducer;
 
@@ -70,7 +70,7 @@ public class BuildRecordProvider {
     }
 
     @Inject
-    public BuildRecordProvider(BuildRecordRepository buildRecordRepository, BuildCoordinator buildCoordinator,
+    public BuildRecordProvider(BuildRecordRepository buildRecordRepository, BuildSetCoordinator buildCoordinator,
             PageInfoProducer pageInfoProducer, RSQLPredicateProducer rsqlPredicateProducer, SortInfoProducer sortInfoProducer) {
         this.buildRecordRepository = buildRecordRepository;
         this.buildCoordinator = buildCoordinator;

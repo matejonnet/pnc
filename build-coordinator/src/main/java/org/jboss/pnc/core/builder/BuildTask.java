@@ -18,7 +18,6 @@
 package org.jboss.pnc.core.builder;
 
 import org.jboss.pnc.core.events.DefaultBuildStatusChangedEvent;
-import org.jboss.pnc.core.exception.CoreException;
 import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.ProductVersion;
@@ -34,7 +33,6 @@ import javax.enterprise.event.Event;
 import java.net.URI;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -69,7 +67,7 @@ public class BuildTask implements BuildExecution {
      */
     private Set<BuildTask> dependencies = new HashSet<>();
 
-    private BuildCoordinator buildCoordinator;
+    private DefaultBuildSetCoordinator buildSetCoordinator;
 
     private String topContentId;
 
@@ -84,7 +82,7 @@ public class BuildTask implements BuildExecution {
     private final AtomicReference<URI> logsWebSocketLink = new AtomicReference<>();
     private boolean hasFailed = false;
 
-    BuildTask(BuildCoordinator buildCoordinator, 
+    BuildTask(DefaultBuildSetCoordinator buildSetCoordinator,
             BuildConfiguration buildConfiguration, 
             BuildConfigurationAudited buildConfigurationAudited,
             String topContentId,
@@ -95,14 +93,14 @@ public class BuildTask implements BuildExecution {
               BuildSetTask buildSetTask,
               int id) {
 
-        this.buildCoordinator = buildCoordinator;
+        this.buildSetCoordinator = buildSetCoordinator;
         this.id = id;
         this.buildConfiguration = buildConfiguration;
         this.buildConfigurationAudited = buildConfigurationAudited;
         this.user = user;
 
         this.buildTaskType = buildTaskType;
-        this.buildStatusChangedEvent = buildCoordinator.getBuildStatusChangedEventNotifier();
+        this.buildStatusChangedEvent = buildSetCoordinator.getBuildStatusChangedEventNotifier();
         this.topContentId = topContentId;
         this.buildSetContentId = buildSetContentId;
         this.buildContentId = buildContentId;
@@ -153,24 +151,11 @@ public class BuildTask implements BuildExecution {
         }
     }
 
-    void setRequiredBuilds(List<BuildTask> dependencies) {
-        this.dependencies.addAll(dependencies);
-    }
-
-    void setRequiredBuilds(Set<BuildTask> dependencies) {
-        this.dependencies = dependencies;
-    }
-
     private void requiredBuildCompleted(BuildTask completed) {
         if (dependencies.contains(completed) && completed.hasFailed()) {
             this.setStatus(BuildStatus.REJECTED);
         } else if (dependencies.stream().allMatch(dep -> dep.getStatus().isCompleted())) {
-            try {
-                buildCoordinator.startBuilding(this);
-            } catch (CoreException e) {
-                setStatus(BuildStatus.SYSTEM_ERROR);
-                setStatusDescription(e.getMessage());
-            }
+            buildSetCoordinator.fireBuild(this);
         }
     }
 

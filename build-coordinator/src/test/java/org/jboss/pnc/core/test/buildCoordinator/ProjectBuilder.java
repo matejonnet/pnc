@@ -20,9 +20,9 @@ package org.jboss.pnc.core.test.buildCoordinator;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.pnc.common.Configuration;
 import org.jboss.pnc.core.BuildDriverFactory;
-import org.jboss.pnc.core.builder.BuildCoordinator;
 import org.jboss.pnc.core.builder.BuildSetTask;
 import org.jboss.pnc.core.builder.BuildTask;
+import org.jboss.pnc.core.builder.BuildSetCoordinator;
 import org.jboss.pnc.core.content.ContentIdentityManager;
 import org.jboss.pnc.core.exception.CoreException;
 import org.jboss.pnc.core.test.buildCoordinator.event.TestCDIBuildStatusChangedReceiver;
@@ -60,7 +60,7 @@ import static org.junit.Assert.fail;
 public class ProjectBuilder {
 
     @Inject
-    BuildCoordinator buildCoordinator;
+    BuildSetCoordinator buildCoordinator;
 
     @Inject
     DatastoreMock datastore;

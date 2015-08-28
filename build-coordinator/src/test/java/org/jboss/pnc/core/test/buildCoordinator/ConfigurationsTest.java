@@ -19,9 +19,9 @@ package org.jboss.pnc.core.test.buildCoordinator;
 
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
-import org.jboss.pnc.core.builder.BuildCoordinator;
 import org.jboss.pnc.core.builder.BuildSetTask;
 import org.jboss.pnc.core.builder.BuildTask;
+import org.jboss.pnc.core.builder.BuildSetCoordinator;
 import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.model.User;
@@ -41,7 +41,7 @@ import javax.persistence.PersistenceException;
 public class ConfigurationsTest extends ProjectBuilder {
 
     @Inject
-    BuildCoordinator buildCoordinator;
+    BuildSetCoordinator buildCoordinator;
 
     @Test(expected=PersistenceException.class)
     @InSequence(10)

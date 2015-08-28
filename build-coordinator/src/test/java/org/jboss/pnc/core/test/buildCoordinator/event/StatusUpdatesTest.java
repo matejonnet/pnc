@@ -23,9 +23,10 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.pnc.common.Configuration;
 import org.jboss.pnc.common.util.ObjectWrapper;
 import org.jboss.pnc.core.BuildDriverFactory;
-import org.jboss.pnc.core.builder.BuildCoordinator;
+import org.jboss.pnc.core.builder.DefaultBuildSetCoordinator;
 import org.jboss.pnc.core.builder.BuildSetTask;
 import org.jboss.pnc.core.builder.BuildTask;
+import org.jboss.pnc.core.builder.BuildSetCoordinator;
 import org.jboss.pnc.core.exception.CoreException;
 import org.jboss.pnc.core.notifications.buildSetTask.BuildSetCallBack;
 import org.jboss.pnc.core.notifications.buildSetTask.BuildSetStatusNotifications;
@@ -70,7 +71,7 @@ public class StatusUpdatesTest {
     private static final Logger log = LoggerFactory.getLogger(StatusUpdatesTest.class);
 
     @Inject
-    BuildCoordinator buildCoordinator;
+    BuildSetCoordinator buildCoordinator;
 
     @Inject
     TestCDIBuildSetStatusChangedReceiver testCDIBuildSetStatusChangedReceiver;
@@ -91,7 +92,7 @@ public class StatusUpdatesTest {
                         Configuration.class.getPackage(),
                         StatusUpdatesTest.class.getPackage(),
                         BuildDriverMock.class.getPackage(),
-                        BuildCoordinator.class.getPackage(),
+                        DefaultBuildSetCoordinator.class.getPackage(),
                         BuildDriverFactory.class.getPackage(),
                         BuildSetStatusChangedEvent.class.getPackage(),
                         Observes.class.getPackage())

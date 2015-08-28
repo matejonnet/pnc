@@ -20,16 +20,9 @@ package org.jboss.pnc.rest.trigger;
 import com.google.common.base.Preconditions;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
-import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 import org.jboss.logging.Logger;
 import org.jboss.pnc.common.Configuration;
@@ -37,7 +30,7 @@ import org.jboss.pnc.common.json.ConfigurationParseException;
 import org.jboss.pnc.common.json.moduleconfig.BpmModuleConfig;
 import org.jboss.pnc.common.json.moduleprovider.PncConfigProvider;
 import org.jboss.pnc.common.util.HttpUtils;
-import org.jboss.pnc.core.builder.BuildCoordinator;
+import org.jboss.pnc.core.builder.BuildSetCoordinator;
 import org.jboss.pnc.core.exception.CoreException;
 import org.jboss.pnc.core.notifications.buildSetTask.BuildSetCallBack;
 import org.jboss.pnc.core.notifications.buildSetTask.BuildSetStatusNotifications;
@@ -50,7 +43,6 @@ import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationAuditedReposit
 import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationRepository;
 import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationSetRepository;
 import org.jboss.pnc.spi.datastore.repositories.SortInfoProducer;
-import org.jboss.pnc.spi.datastore.repositories.api.SortInfo;
 import org.jboss.pnc.spi.events.BuildSetStatusChangedEvent;
 import org.jboss.pnc.spi.events.BuildStatusChangedEvent;
 import org.jboss.pnc.spi.repositorymanager.RepositoryManagerException;
@@ -60,12 +52,6 @@ import javax.inject.Inject;
 
 import java.io.IOException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.function.Consumer;
 
 @Stateless
@@ -73,7 +59,7 @@ public class BuildTriggerer {
 
     private final Logger log = Logger.getLogger(BuildTriggerer.class);
     
-    private BuildCoordinator buildCoordinator;
+    private BuildSetCoordinator buildCoordinator;
     private BuildConfigurationRepository buildConfigurationRepository;
     private BuildConfigurationAuditedRepository buildConfigurationAuditedRepository;
     private BuildConfigurationSetRepository buildConfigurationSetRepository;
@@ -89,7 +75,7 @@ public class BuildTriggerer {
     }
 
     @Inject
-    public BuildTriggerer(final BuildCoordinator buildCoordinator, final BuildConfigurationRepository buildConfigurationRepository,
+    public BuildTriggerer(final BuildSetCoordinator buildCoordinator, final BuildConfigurationRepository buildConfigurationRepository,
             final BuildConfigurationAuditedRepository buildConfigurationAuditedRepository, final BuildConfigurationSetRepository buildConfigurationSetRepository,
             BuildSetStatusNotifications buildSetStatusNotifications, BuildStatusNotifications buildStatusNotifications,
             SortInfoProducer sortInfoProducer) {
