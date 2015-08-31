@@ -20,6 +20,7 @@ package org.jboss.pnc.core.test.buildCoordinator;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.pnc.core.builder.BuildSetTask;
 import org.jboss.pnc.core.builder.BuildTask;
+import org.jboss.pnc.core.builder.DefaultBuildSetCoordinator;
 import org.jboss.pnc.core.exception.CoreException;
 import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.model.User;
@@ -46,7 +47,7 @@ public class ReadDependenciesTest extends ProjectBuilder {
         User user = User.Builder.newBuilder().id(1).username("test-user").build();
         BuildSetTask buildSetTask = null;
         try {
-            buildSetTask = buildCoordinator.createBuildSetTask(buildConfigurationSet, user, BuildExecutionType.COMPOSED_BUILD);
+            buildSetTask = ((DefaultBuildSetCoordinator)buildCoordinator).createBuildSetTask(buildConfigurationSet, user, BuildExecutionType.COMPOSED_BUILD);
         } catch (CoreException e) {
             Assert.fail(e.getMessage());
         }

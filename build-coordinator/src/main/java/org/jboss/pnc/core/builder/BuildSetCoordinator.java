@@ -25,7 +25,9 @@ import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.spi.BuildExecutionType;
 import org.jboss.pnc.spi.datastore.DatastoreException;
+import org.jboss.pnc.spi.events.BuildStatusChangedEvent;
 
+import javax.enterprise.event.Event;
 import java.util.List;
 
 /**
@@ -33,13 +35,16 @@ import java.util.List;
  */
 public interface BuildSetCoordinator {
 
+    BuildTask buildSingleConfiguration(BuildConfiguration buildConfiguration, BuildConfigSetRecord buildConfigSetRecord, User userTriggeredBuild) throws CoreException;
+
     BuildTask build(BuildConfiguration buildConfiguration, User userTriggeredBuild) throws CoreException;
 
-    BuildSetTask build(BuildConfigurationSet buildConfigurationSet, User userTriggeredBuild) throws CoreException, DatastoreException;
+    BuildSetTask buildSet(BuildConfigurationSet buildConfigurationSet, User userTriggeredBuild) throws CoreException, DatastoreException;
 
     BuildConfigSetRecord saveBuildConfigSetRecord(BuildConfigSetRecord buildConfigSetRecord) throws CoreException;
 
     List<BuildTask> getBuildTasks();
 
     void shutdownCoordinator();
+
 }

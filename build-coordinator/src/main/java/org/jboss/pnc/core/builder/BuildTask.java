@@ -104,7 +104,7 @@ public class BuildTask implements BuildExecution {
         this.topContentId = topContentId;
         this.buildSetContentId = buildSetContentId;
         this.buildContentId = buildContentId;
-        this.buildSetTask = buildSetTask;
+        this.buildSetTask = buildSetTask; //TODO improve: remove dependency on buildSetTask
 
         if (buildSetTask.getProductMilestone() != null) {
             buildRecordSetIds.add(buildSetTask.getProductMilestone().getPerformedBuildRecordSet().getId());

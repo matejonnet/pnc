@@ -24,7 +24,11 @@ import org.jboss.pnc.core.EnvironmentDriverFactory;
 import org.jboss.pnc.core.RepositoryManagerFactory;
 import org.jboss.pnc.core.content.ContentIdentityManager;
 import org.jboss.pnc.core.exception.CoreException;
-import org.jboss.pnc.model.*;
+import org.jboss.pnc.model.BuildConfigSetRecord;
+import org.jboss.pnc.model.BuildConfiguration;
+import org.jboss.pnc.model.BuildConfigurationSet;
+import org.jboss.pnc.model.ProductMilestone;
+import org.jboss.pnc.model.User;
 import org.jboss.pnc.spi.BuildExecutionType;
 import org.jboss.pnc.spi.BuildSetStatus;
 import org.jboss.pnc.spi.BuildStatus;
@@ -37,7 +41,10 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -78,6 +85,41 @@ public class DefaultBuildSetCoordinator implements BuildSetCoordinator {
         this.buildProcessManager = buildProcessManager;
     }
 
+    /**
+     * Trigger single build which is a part of given set.
+     * Note that dependency resolution is not checked, the system will run the build and expect that dependencies are available.
+     *
+     * @param buildConfiguration
+     * @param userTriggeredBuild
+     * @return
+     * @throws CoreException
+     */
+    @Override
+    public BuildTask buildSingleConfiguration(BuildConfiguration buildConfiguration, BuildConfigSetRecord buildConfigSetRecord, User userTriggeredBuild) throws CoreException {
+        BuildSetTask buildSetTask = new BuildSetTask( //TODO improve: remove dependency to a BuildSetTask
+                this,
+                buildConfigSetRecord,
+                BuildExecutionType.COMPOSED_BUILD,
+                getProductMilestone(buildConfigSetRecord.getBuildConfigurationSet()));
+
+        BuildTask buildTask = initializeBuildTask(buildConfiguration, buildSetTask);
+
+        if (!rejectAlreadySubmitted(buildTask)) {
+            buildSetTask.addBuildTask(buildTask); //probably not required
+            Runnable onComplete = () -> buildTasks.remove(buildTask);
+            buildProcessManager.processBuildTask(buildTask, onComplete);
+        }
+
+        return buildTask;
+    }
+
+    /**
+     * Trigger a build of individual standalone (not part of any set) build configuration
+     * @param buildConfiguration
+     * @param userTriggeredBuild
+     * @return
+     * @throws CoreException
+     */
     @Override
     public BuildTask build(BuildConfiguration buildConfiguration, User userTriggeredBuild) throws CoreException {
         BuildConfigurationSet buildConfigurationSet = BuildConfigurationSet.Builder.newBuilder()
@@ -85,7 +127,6 @@ public class DefaultBuildSetCoordinator implements BuildSetCoordinator {
                 .buildConfiguration(buildConfiguration)
                 .build();
 
-        //TODO what if individually triggered build is part of set
         BuildSetTask buildSetTask = createBuildSetTask(buildConfigurationSet, userTriggeredBuild, BuildExecutionType.STANDALONE_BUILD);
 
         scheduleBuilds(buildSetTask);
@@ -94,7 +135,7 @@ public class DefaultBuildSetCoordinator implements BuildSetCoordinator {
     }
 
     @Override
-    public BuildSetTask build(BuildConfigurationSet buildConfigurationSet, User userTriggeredBuild) throws CoreException, DatastoreException {
+    public BuildSetTask buildSet(BuildConfigurationSet buildConfigurationSet, User userTriggeredBuild) throws CoreException, DatastoreException {
 
         BuildSetTask buildSetTask = createBuildSetTask(buildConfigurationSet, userTriggeredBuild, BuildExecutionType.COMPOSED_BUILD);
 
@@ -131,26 +172,12 @@ public class DefaultBuildSetCoordinator implements BuildSetCoordinator {
      * initialized the BuildConfigSet, BuildConfigSetRecord, Milestone, etc.
      */
     private void initializeBuildTasksInSet(BuildSetTask buildSetTask) {
-        ContentIdentityManager contentIdentityManager = new ContentIdentityManager();
-        String topContentId = contentIdentityManager.getProductContentId(buildSetTask.getBuildConfigurationSet().getProductVersion());
-        String buildSetContentId = contentIdentityManager.getBuildSetContentId(buildSetTask.getBuildConfigurationSet());
-
         // Loop to create the build tasks
         for(BuildConfiguration buildConfig : buildSetTask.getBuildConfigurationSet().getBuildConfigurations()) {
-            String buildContentId = contentIdentityManager.getBuildContentId(buildConfig);
-            BuildTask buildTask = new BuildTask(
-                    this,
-                    buildConfig,
-                    datastoreAdapter.getLatestBuildConfigurationAudited(buildConfig.getId()),
-                    topContentId,
-                    buildSetContentId,
-                    buildContentId,
-                    buildSetTask.getBuildTaskType(),
-                    buildSetTask.getBuildConfigSetRecord().getUser(),
-                    buildSetTask,
-                    datastoreAdapter.getNextBuildRecordId());
+            BuildTask buildTask = initializeBuildTask(buildConfig, buildSetTask);
             buildSetTask.addBuildTask(buildTask);
         }
+
         // Loop again to set dependencies
         for (BuildTask buildTask : buildSetTask.getBuildTasks()) {
             for (BuildConfiguration dep : buildTask.getBuildConfigurationDependencies()) {
@@ -162,6 +189,25 @@ public class DefaultBuildSetCoordinator implements BuildSetCoordinator {
                 }
             }
         }
+    }
+
+    private BuildTask initializeBuildTask(BuildConfiguration buildConfig, BuildSetTask buildSetTask) {
+        BuildConfigurationSet buildConfigurationSet = buildSetTask.getBuildConfigurationSet();
+        String topContentId = ContentIdentityManager.getProductContentId(buildConfigurationSet.getProductVersion());
+        String buildSetContentId = ContentIdentityManager.getBuildSetContentId(buildConfigurationSet);
+        String buildContentId = ContentIdentityManager.getBuildContentId(buildConfig);
+
+        return new BuildTask(
+                this,
+                buildConfig,
+                datastoreAdapter.getLatestBuildConfigurationAudited(buildConfig.getId()),
+                topContentId,
+                buildSetContentId,
+                buildContentId,
+                buildSetTask.getBuildTaskType(),
+                buildSetTask.getBuildConfigSetRecord().getUser(), //TODO use user who triggered individual configuration
+                buildSetTask,
+                datastoreAdapter.getNextBuildRecordId());
     }
 
     /**
@@ -182,27 +228,21 @@ public class DefaultBuildSetCoordinator implements BuildSetCoordinator {
             return buildTask.readyToBuild();
         };
 
-        Predicate<BuildTask> rejectAlreadySubmitted = (buildTask) -> {
-            if (isBuildAlreadySubmitted(buildTask)) {
-                buildTask.setStatus(BuildStatus.REJECTED);
-                buildTask.setStatusDescription("The configuration is already in the build queue.");
-                return false;
-            } else {
-                return true;
-            }
-        };
-
         if (!BuildSetStatus.REJECTED.equals(buildSetTask.getStatus())) {
             buildSetTask.getBuildTasks().stream()
                     .filter(readyToBuild)
-                    .filter(rejectAlreadySubmitted)
+                    .filter(bt -> rejectAlreadySubmitted(bt))
                     .forEach(buildTask -> fireBuild(buildTask));
         }
     }
 
     void fireBuild(BuildTask buildTask) {
         Runnable onComplete = () -> buildTasks.remove(buildTask);
-        buildProcessManager.processBuildTask(buildTask, onComplete);
+        if (true) { //TODO if using BPM
+            buildProcessManager.processBuildTask(buildTask, onComplete);
+        } else {
+            //start remote bpm process
+        }
     };
 
 
@@ -251,8 +291,13 @@ public class DefaultBuildSetCoordinator implements BuildSetCoordinator {
         return Collections.unmodifiableList(buildTasks.stream().collect(Collectors.toList()));
     }
 
-    private boolean isBuildAlreadySubmitted(BuildTask buildTask) {
-        return buildTasks.contains(buildTask);
+    private boolean rejectAlreadySubmitted(BuildTask buildTask) {
+        boolean alreadySubmitted = buildTasks.contains(buildTask);
+        if (alreadySubmitted) {
+            buildTask.setStatus(BuildStatus.REJECTED);
+            buildTask.setStatusDescription("The configuration is already in the build queue.");
+        }
+        return alreadySubmitted;
     }
 
     Event<BuildStatusChangedEvent> getBuildStatusChangedEventNotifier() {
