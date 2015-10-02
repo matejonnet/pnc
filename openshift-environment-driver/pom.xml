@@ -67,7 +67,7 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
+    <dependency> <!-- TODO use CDI container only -->
       <groupId>org.jboss.pnc</groupId>
       <artifactId>test-arquillian-container</artifactId>
       <scope>test</scope>

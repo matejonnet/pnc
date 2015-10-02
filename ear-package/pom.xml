@@ -129,7 +129,7 @@
               <bundleDir>/</bundleDir>
             </jarModule>
             <jarModule>
-              <groupId>org.jboss.pnc</groupId>
+              <groupId>org.jboss.pnc</groupId> <!-- TODO do not pack modules we don't need -->
               <artifactId>jenkins-build-driver</artifactId>
               <includeInApplicationXml>true</includeInApplicationXml>
               <bundleDir>/</bundleDir>

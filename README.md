@@ -44,6 +44,7 @@ Module Overview
 
 Environmental variables
 -----------------------
+#TODO update a list to mactch latest config or remove and point to config file itself to not require to keep them in sync
 
 Environment variables, which can be used to set up application:
 

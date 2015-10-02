@@ -54,7 +54,7 @@
     <module>auth</module>
     <module>datastore</module>
     <module>ear-package</module>
-    <module>jenkins-build-driver</module>
+    <module>jenkins-build-driver</module> <!-- TODO exclude not required modules from the default build, should we move them to another repo -->
     <module>termd-build-driver</module>
     <module>maven-repository-manager</module>
     <module>build-coordinator</module>

@@ -34,7 +34,7 @@
     <dependency>
       <groupId>org.jboss.pnc</groupId>
       <artifactId>test-common</artifactId>
-      <!-- Yes, it is needed here - in parent pom it is set to test on purpose -->
+      <!-- Yes, it is needed here - in parent pom it is set to test on purpose TODO and what is the pourpose ? -->
       <scope>compile</scope>
     </dependency>
     <dependency>
