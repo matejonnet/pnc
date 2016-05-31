@@ -17,13 +17,6 @@
  */
 package org.jboss.pnc.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-
-import javax.inject.Inject;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
@@ -31,14 +24,22 @@ import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.pnc.AbstractTest;
 import org.jboss.pnc.integration.deployments.Deployments;
+import org.jboss.pnc.model.Artifact;
+import org.jboss.pnc.model.ArtifactQuality;
 import org.jboss.pnc.model.BuildConfiguration;
+import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.BuildEnvironment;
-import org.jboss.pnc.model.SystemImageType;
+import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.model.Product;
 import org.jboss.pnc.model.ProductVersion;
 import org.jboss.pnc.model.Project;
+import org.jboss.pnc.model.RepositoryType;
+import org.jboss.pnc.model.SystemImageType;
+import org.jboss.pnc.spi.datastore.Datastore;
+import org.jboss.pnc.spi.datastore.DatastoreException;
 import org.jboss.pnc.spi.datastore.audit.AuditRepository;
 import org.jboss.pnc.spi.datastore.audit.Revision;
+import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationAuditedRepository;
 import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationRepository;
 import org.jboss.pnc.spi.datastore.repositories.BuildEnvironmentRepository;
 import org.jboss.pnc.spi.datastore.repositories.ProductRepository;
@@ -48,14 +49,22 @@ import org.jboss.pnc.test.category.ContainerTest;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import java.lang.invoke.MethodHandles;
+import java.util.Date;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
- * End to end scenario test for auditing entities.
+ * End to end scenario test.
  * <i>Note that Hibernate Envers works on persisted entities so we need to put each test step in a
  * separate method and commit the transaction using Arquillian JTA integration</i>
  */
@@ -87,6 +96,12 @@ public class DatastoreTest {
 
     @Inject
     AuditRepository<BuildConfiguration, Integer> auditedBuildConfigurationRepository;
+
+    @Inject
+    BuildConfigurationAuditedRepository buildConfigurationAuditedRepository;
+
+    @Inject
+    Datastore datastore;
 
     private static int testedConfigurationId;
 
@@ -151,6 +166,55 @@ public class DatastoreTest {
         //than
         assertThat(lastModification.getId()).isEqualTo(testedConfiguration.getId());
         assertThat(lastModification.getAuditedEntity().getName()).isEqualTo("original name");
+    }
+
+    @Test
+    @InSequence(10)
+    public void shouldUpdateArtifactQuality() throws DatastoreException {
+        //given
+        BuildConfiguration buildConfiguration = buildConfigurationRepository.queryById(testedConfigurationId);
+        List<BuildConfigurationAudited> allByIdOrderByRevDesc = buildConfigurationAuditedRepository.findAllByIdOrderByRevDesc(testedConfigurationId);
+
+        Artifact.Builder baseArtifactBuilder = Artifact.Builder.newBuilder()
+                .identifier("id-376834783")
+                .checksum("sum-376834783")
+                .repoType(RepositoryType.MAVEN);
+        BuildRecord.Builder imported = BuildRecord.Builder.newBuilder()
+                .id(1)
+                .latestBuildConfiguration(buildConfiguration)
+                .buildConfigurationAudited(allByIdOrderByRevDesc.get(0))
+                .submitTime(new Date())
+                .dependency(baseArtifactBuilder.artifactQuality(ArtifactQuality.IMPORTED).build());
+
+        //when
+        datastore.storeCompletedBuild(imported);
+    }
+
+    @Test
+    @InSequence(20)
+    public void shouldUpdateArtifactQuality_2() {
+        //given
+        BuildConfiguration buildConfiguration = buildConfigurationRepository.queryById(testedConfigurationId);
+        List<BuildConfigurationAudited> allByIdOrderByRevDesc = buildConfigurationAuditedRepository.findAllByIdOrderByRevDesc(testedConfigurationId);
+
+        Artifact.Builder baseArtifactBuilder = Artifact.Builder.newBuilder()
+                .identifier("id-376834783")
+                .checksum("sum-376834783")
+                .repoType(RepositoryType.MAVEN);
+
+        BuildRecord.Builder built = BuildRecord.Builder.newBuilder()
+                .id(2)
+                .latestBuildConfiguration(buildConfiguration)
+                .buildConfigurationAudited(allByIdOrderByRevDesc.get(1))
+                .submitTime(new Date())
+                .builtArtifact(baseArtifactBuilder.artifactQuality(ArtifactQuality.BUILT).build());
+
+        //when
+        try {
+            BuildRecord buildRecord = datastore.storeCompletedBuild(built);
+        } catch (Exception e) {
+            Assert.fail("Unable to update artifact quality: " + e.getMessage());
+        }
     }
 
 }
