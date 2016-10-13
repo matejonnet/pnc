@@ -52,7 +52,7 @@ public class BpmBuildTask extends BpmTask {
     }
 
     @Override
-    protected Map<String, Object> getExtendedProcessParameters() throws CoreException {
+    public Map<String, Object> getExtendedProcessParameters() throws CoreException {
         LOG.debug("[{}] Creating extended parameters", buildTask.getId());
         Map<String, Object> parameters = super.getExtendedProcessParameters();
         parameters.put("buildExecutionConfiguration", getBuildExecutionConfiguration(buildTask));

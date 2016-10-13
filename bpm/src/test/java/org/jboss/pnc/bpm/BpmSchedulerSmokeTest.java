@@ -16,10 +16,8 @@
  * limitations under the License.
  */
 
-package org.jboss.pnc.bpm.test;
+package org.jboss.pnc.bpm;
 
-import org.jboss.pnc.bpm.BpmManager;
-import org.jboss.pnc.bpm.BpmTask;
 import org.jboss.pnc.common.json.moduleconfig.BpmModuleConfig;
 import org.jboss.pnc.rest.restmodel.bpm.BpmStringMapNotificationRest;
 import org.jboss.pnc.spi.exception.CoreException;

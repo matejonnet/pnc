@@ -44,7 +44,7 @@ public class MilestoneReleaseTask extends BpmTask {
     }
 
     @Override
-    protected Map<String, Object> getExtendedProcessParameters() throws CoreException {
+    public Map<String, Object> getExtendedProcessParameters() throws CoreException {
         log.debug("[{}] Creating extended parameters", milestone.getId());
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("brewPush", createMilestoneRest(milestone));
