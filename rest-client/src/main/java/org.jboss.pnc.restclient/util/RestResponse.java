@@ -15,31 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.integration.env;
 
+package org.jboss.pnc.restclient.util;
 
-/**
- * This is the Util class to get test environment, like the http-port, etc.
- *
- * @author <a href="mailto:lgao@redhat.com">Lin Gao</a>
- *
- *
- */
-public final class IntegrationTestEnv {
+import com.jayway.restassured.response.Response;
 
-	private IntegrationTestEnv(){
-		// static utils methods only.
-	}
+import java.util.Optional;
 
-	/**
-	 * Gets Test Http Port.
-	 * 
-	 * @return the http port for REST end points, default to 8080.
-	 */
-	public static int getHttpPort() { //TODO init client Defaults
-		int defaultHttpPort = Integer.getInteger("jboss.http.port", 8080);
-		int offset = Integer.getInteger("jboss.port.offset", 0);
-		return defaultHttpPort + offset;
-	}
+public class RestResponse<T> {
 
+    private final Response restCallResponse;
+    private final Optional<T> returnedValue;
+
+    public RestResponse(Response restCallResponse, T returnedValue) {
+        this.restCallResponse = restCallResponse;
+        this.returnedValue = Optional.ofNullable(returnedValue);
+    }
+
+    public boolean hasValue() {
+        return this.returnedValue.isPresent();
+    }
+
+    public T getValue() {
+        return this.returnedValue.get();
+    }
+
+    public Response getRestCallResponse() {
+        return this.restCallResponse;
+    }
 }

@@ -19,20 +19,19 @@ package org.jboss.pnc.integration;
 
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.pnc.AbstractTest;
 import org.jboss.pnc.integration.assertions.ResponseAssertion;
-import org.jboss.pnc.integration.client.AbstractRestClient;
-import org.jboss.pnc.integration.client.EnvironmentRestClient;
 import org.jboss.pnc.integration.deployments.Deployments;
 import org.jboss.pnc.integration.utils.ResponseUtils;
 import org.jboss.pnc.model.SystemImageType;
 import org.jboss.pnc.rest.endpoint.BuildEnvironmentEndpoint;
 import org.jboss.pnc.rest.provider.BuildEnvironmentProvider;
 import org.jboss.pnc.rest.restmodel.BuildEnvironmentRest;
+import org.jboss.pnc.restclient.AbstractRestClient;
+import org.jboss.pnc.restclient.EnvironmentRestClient;
 import org.jboss.pnc.test.category.ContainerTest;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;

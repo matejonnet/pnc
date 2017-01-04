@@ -17,23 +17,20 @@
  */
 package org.jboss.pnc.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.jboss.pnc.integration.deployments.Deployments.addBuildExecutorMock;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.pnc.AbstractTest;
-import org.jboss.pnc.integration.client.BuildConfigurationRestClient;
-import org.jboss.pnc.integration.client.BuildConfigurationSetRestClient;
-import org.jboss.pnc.integration.client.BuildRecordRestClient;
-import org.jboss.pnc.integration.client.BuildRestClient;
-import org.jboss.pnc.integration.client.UserRestClient;
-import org.jboss.pnc.integration.client.util.RestResponse;
 import org.jboss.pnc.integration.deployments.Deployments;
 import org.jboss.pnc.integration.utils.ResponseUtils;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationRest;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationSetRest;
 import org.jboss.pnc.rest.restmodel.UserRest;
+import org.jboss.pnc.restclient.BuildConfigurationRestClient;
+import org.jboss.pnc.restclient.BuildConfigurationSetRestClient;
+import org.jboss.pnc.restclient.BuildRecordRestClient;
+import org.jboss.pnc.restclient.BuildRestClient;
+import org.jboss.pnc.restclient.UserRestClient;
+import org.jboss.pnc.restclient.util.RestResponse;
 import org.jboss.pnc.spi.BuildScope;
 import org.jboss.pnc.test.category.ContainerTest;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
@@ -48,6 +45,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.jboss.pnc.integration.deployments.Deployments.addBuildExecutorMock;
 
 @RunWith(Arquillian.class)
 @Category(ContainerTest.class)

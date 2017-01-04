@@ -21,9 +21,6 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.pnc.AbstractTest;
-import org.jboss.pnc.integration.client.AbstractRestClient;
-import org.jboss.pnc.integration.client.BuildRestClient;
-import org.jboss.pnc.integration.client.util.RestResponse;
 import org.jboss.pnc.integration.deployments.Deployments;
 import org.jboss.pnc.integration.env.IntegrationTestEnv;
 import org.jboss.pnc.integration.utils.AuthUtils;
@@ -34,6 +31,9 @@ import org.jboss.pnc.model.IdRev;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.rest.provider.BuildRecordProvider;
 import org.jboss.pnc.rest.restmodel.BuildRecordRest;
+import org.jboss.pnc.restclient.AbstractRestClient;
+import org.jboss.pnc.restclient.BuildRestClient;
+import org.jboss.pnc.restclient.util.RestResponse;
 import org.jboss.pnc.spi.coordinator.BuildTask;
 import org.jboss.pnc.spi.datastore.repositories.BuildRecordRepository;
 import org.jboss.pnc.test.category.ContainerTest;
@@ -55,7 +55,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ALL")
 @RunWith(Arquillian.class)

@@ -15,13 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.integration.client;
+package org.jboss.pnc.restclient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
-import org.jboss.pnc.integration.client.util.RestResponse;
+import org.jboss.pnc.restclient.util.RestResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +31,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.jboss.pnc.integration.env.IntegrationTestEnv.getHttpPort;
-
 public abstract class AbstractRestClient<T> {
+
+    private final int httpPort;
 
     static class QueryParam {
         final String paramName;
@@ -60,6 +60,11 @@ public abstract class AbstractRestClient<T> {
     }
 
     protected AbstractRestClient(String collectionUrl, Class<T> entityClass, boolean withAuth) {
+        this(collectionUrl, entityClass, true, Defaults.getHttpPort());
+    }
+
+    protected AbstractRestClient(String collectionUrl, Class<T> entityClass, boolean withAuth, int httpPort) {
+        this.httpPort = httpPort;
         this.entityClass = entityClass;
 
         if(collectionUrl.endsWith("/")) {
@@ -99,12 +104,12 @@ public abstract class AbstractRestClient<T> {
     }
 
     protected RequestSpecification request() {
-        return given()
+        return RestAssured.given()
                 .auth().basic("admin", "user.1234")
                 .log().all()
                 .header("Accept", "application/json")
                 .contentType(ContentType.JSON)
-                .port(getHttpPort())
+                .port(httpPort)
                     .expect().log().all()
                 .request();
     }

@@ -15,32 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jboss.pnc.restclient;
 
-package org.jboss.pnc.integration.client.util;
+/**
+ * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
+ */
+public class Defaults {
 
-import com.jayway.restassured.response.Response;
+    private static volatile Defaults instance;
 
-import java.util.Optional;
+    private int httpPort = 80;
 
-public class RestResponse<T> {
-
-    private final Response restCallResponse;
-    private final Optional<T> returnedValue;
-
-    public RestResponse(Response restCallResponse, T returnedValue) {
-        this.restCallResponse = restCallResponse;
-        this.returnedValue = Optional.ofNullable(returnedValue);
+    private static Defaults getInstance() {
+        if (instance == null) {
+            synchronized(Defaults.class) {
+                if (instance == null) {
+                    instance = new Defaults();
+                }
+            }
+        }
+        return instance;
     }
 
-    public boolean hasValue() {
-        return this.returnedValue.isPresent();
+    public static void init(int httpPort) {
+        getInstance().httpPort = httpPort;
     }
 
-    public T getValue() {
-        return this.returnedValue.get();
+    public static int getHttpPort() {
+        return getInstance().httpPort;
     }
 
-    public Response getRestCallResponse() {
-        return this.restCallResponse;
-    }
 }

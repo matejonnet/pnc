@@ -17,20 +17,16 @@
  */
 package org.jboss.pnc.integration;
 
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.path.json.config.JsonPathConfig;
-import com.jayway.restassured.response.Response;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.pnc.AbstractTest;
-import org.jboss.pnc.integration.assertions.ResponseAssertion;
-import org.jboss.pnc.integration.client.BuildConfigurationRestClient;
-import org.jboss.pnc.integration.client.ProjectRestClient;
-import org.jboss.pnc.integration.client.util.RestResponse;
 import org.jboss.pnc.integration.deployments.Deployments;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationRest;
 import org.jboss.pnc.rest.restmodel.ProjectRest;
+import org.jboss.pnc.restclient.BuildConfigurationRestClient;
+import org.jboss.pnc.restclient.ProjectRestClient;
+import org.jboss.pnc.restclient.util.RestResponse;
 import org.jboss.pnc.test.category.ContainerTest;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.junit.Before;
@@ -45,9 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static com.jayway.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jboss.pnc.integration.env.IntegrationTestEnv.getHttpPort;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(Arquillian.class)

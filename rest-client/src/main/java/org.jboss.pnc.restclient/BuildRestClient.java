@@ -15,15 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.integration.client;
+package org.jboss.pnc.restclient;
 
-import org.jboss.pnc.rest.restmodel.ProductRest;
+import org.jboss.pnc.rest.restmodel.BuildRecordRest;
 
-public class ProductRestClient extends AbstractRestClient<ProductRest> {
+public class BuildRestClient extends AbstractRestClient<BuildRecordRest> {
 
-    private static final String PROJECT_REST_ENDPOINT = "/pnc-rest/rest/products/";
+    private static final String BUILD_RECORD_REST_ENDPOINT = "/pnc-rest/rest/builds/";
 
-    public ProductRestClient() {
-        super(PROJECT_REST_ENDPOINT, ProductRest.class);
+    public BuildRestClient() {
+        super(BUILD_RECORD_REST_ENDPOINT, BuildRecordRest.class, false);
     }
+
 }

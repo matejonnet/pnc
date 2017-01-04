@@ -15,17 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.integration.client;
+package org.jboss.pnc.restclient;
 
 import com.jayway.restassured.response.Response;
-import org.jboss.pnc.integration.client.util.RestResponse;
-import org.jboss.pnc.model.BuildConfigurationSet;
+import org.jboss.pnc.restclient.util.RestResponse;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationSetRest;
 import org.jboss.pnc.rest.restmodel.ProductVersionRest;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class ProductVersionRestClient extends AbstractRestClient<ProductVersionRest> {
 

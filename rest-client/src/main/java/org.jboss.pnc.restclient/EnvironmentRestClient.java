@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.integration.client;
+package org.jboss.pnc.restclient;
 
 import org.jboss.pnc.rest.restmodel.BuildEnvironmentRest;
 

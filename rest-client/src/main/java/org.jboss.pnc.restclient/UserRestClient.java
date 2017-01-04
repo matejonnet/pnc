@@ -15,17 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.integration.client;
+package org.jboss.pnc.restclient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.response.Response;
 
-import org.jboss.pnc.integration.client.util.RestResponse;
+import org.jboss.pnc.restclient.util.RestResponse;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.rest.restmodel.BuildRecordRest;
 import org.jboss.pnc.rest.restmodel.UserRest;
-import org.jboss.pnc.spi.datastore.predicates.UserPredicates;
-import org.jboss.pnc.spi.datastore.repositories.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
