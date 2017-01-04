@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(Arquillian.class)
 @Category(ContainerTest.class)
-public class UserRestTest {
+public class UserRestTest extends AbstractTest {
 
     public static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

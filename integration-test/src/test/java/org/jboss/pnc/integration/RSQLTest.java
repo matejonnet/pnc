@@ -55,7 +55,7 @@ import static org.jboss.pnc.rest.utils.StreamHelper.nullableStreamOf;
 @RunWith(Arquillian.class)
 @Transactional
 @Category(ContainerTest.class)
-public class RSQLTest {
+public class RSQLTest extends AbstractTest {
 
     public static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

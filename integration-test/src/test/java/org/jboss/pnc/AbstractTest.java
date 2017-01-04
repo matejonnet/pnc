@@ -22,6 +22,8 @@ import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.Headers;
 import org.apache.http.message.BasicHeader;
 import org.jboss.pnc.common.json.ConfigurationParseException;
+import org.jboss.pnc.integration.env.IntegrationTestEnv;
+import org.jboss.pnc.restclient.Defaults;
 import org.junit.BeforeClass;
 
 import java.io.IOException;
@@ -60,6 +62,7 @@ public class AbstractTest {
     public static void setupAuth() throws IOException, ConfigurationParseException {
         Header authenticationHeader = getAuthenticationHeader();
         testHeaders = new Headers(authenticationHeader, acceptJsonHeader);
+        Defaults.init(IntegrationTestEnv.getHttpPort());
     }
 
     public static Header getAuthenticationHeader() {

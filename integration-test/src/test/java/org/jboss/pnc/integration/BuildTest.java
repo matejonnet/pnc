@@ -51,7 +51,7 @@ import static org.jboss.pnc.integration.deployments.Deployments.addBuildExecutor
 
 @RunWith(Arquillian.class)
 @Category(ContainerTest.class)
-public class BuildTest {
+public class BuildTest extends AbstractTest {
 
     protected static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

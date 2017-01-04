@@ -25,6 +25,7 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.pnc.AbstractTest;
 import org.jboss.pnc.integration.assertions.ResponseAssertion;
 import org.jboss.pnc.integration.deployments.Deployments;
+import org.jboss.pnc.integration.env.IntegrationTestEnv;
 import org.jboss.pnc.integration.matchers.JsonMatcher;
 import org.jboss.pnc.integration.template.JsonTemplateBuilder;
 import org.jboss.pnc.rest.endpoint.BuildConfigurationEndpoint;
@@ -33,6 +34,7 @@ import org.jboss.pnc.rest.restmodel.BuildConfigurationRest;
 import org.jboss.pnc.rest.restmodel.BuildEnvironmentRest;
 import org.jboss.pnc.rest.restmodel.ProjectRest;
 import org.jboss.pnc.restclient.BuildConfigurationRestClient;
+import org.jboss.pnc.restclient.Defaults;
 import org.jboss.pnc.restclient.EnvironmentRestClient;
 import org.jboss.pnc.restclient.ProjectRestClient;
 import org.jboss.pnc.restclient.util.RestResponse;
@@ -119,6 +121,7 @@ public class BuildConfigurationRestTest extends AbstractTest {
         restWar.addClass(BuildConfigurationRest.class);
 
         logger.info(enterpriseArchive.toString(true));
+
         return enterpriseArchive;
     }
 

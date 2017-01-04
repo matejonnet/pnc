@@ -36,7 +36,7 @@ public final class IntegrationTestEnv {
 	 * 
 	 * @return the http port for REST end points, default to 8080.
 	 */
-	public static int getHttpPort() { //TODO init client Defaults
+	public static int getHttpPort() {
 		int defaultHttpPort = Integer.getInteger("jboss.http.port", 8080);
 		int offset = Integer.getInteger("jboss.port.offset", 0);
 		return defaultHttpPort + offset;

@@ -71,7 +71,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(Arquillian.class)
 @Category(ContainerTest.class)
-public class BuildRecordsTest {
+public class BuildRecordsTest extends AbstractTest {
 
     public static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

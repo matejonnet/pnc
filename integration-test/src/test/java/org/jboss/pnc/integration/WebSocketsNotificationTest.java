@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Arquillian.class)
 @Category(ContainerTest.class)
-public class WebSocketsNotificationTest {
+public class WebSocketsNotificationTest extends AbstractTest {
 
     public static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
