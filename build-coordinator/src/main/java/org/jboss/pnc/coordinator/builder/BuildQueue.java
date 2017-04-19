@@ -99,8 +99,12 @@ public class BuildQueue {
      * Add a new, ready to build task to queue
      *
      * @param task task to be enqueued
+     * @return true if task has been added of false if the task is already in queue. Comparison is made based on task.buildConfiguration
      */
     public synchronized boolean addReadyTask(BuildTask task) {
+        if (getUnfinishedTask(task.getBuildConfiguration()).isPresent()) {
+            return false;
+        }
         if (!task.readyToBuild()) {
             throw new IllegalArgumentException("a not ready task added to the queue: " + task);
         }
@@ -114,11 +118,16 @@ public class BuildQueue {
      * Add a task that is waiting for dependencies
      * @param task task that is not ready to build
      * @param taskReadyCallback a callback to be invoked when the task becomes ready
+     * @return true if task has been added of false if the task is already in queue. Comparison is made based on task.buildConfiguration
      */
-    public synchronized void addWaitingTask(BuildTask task, Runnable taskReadyCallback) {
+    public synchronized boolean addWaitingTask(BuildTask task, Runnable taskReadyCallback) {
+        if (getUnfinishedTask(task.getBuildConfiguration()).isPresent()) {
+            return false;
+        }
         unfinishedTasks.add(task);
         log.debug("adding waiting task: {}", task);
         waitingTasksWithCallbacks.put(task, taskReadyCallback);
+        return true;
     }
 
     /**

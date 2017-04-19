@@ -86,7 +86,6 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
 
     private BuildTasksInitializer buildTasksInitializer;
 
-
     @Deprecated
     public DefaultBuildCoordinator(){} //workaround for CDI constructor parameter injection
 
@@ -194,11 +193,19 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
     private void addTaskToBuildQueue(BuildTask task) {
         log.debug("Adding task {} to buildQueue.", task);
         if (task.readyToBuild()) {
-            updateBuildTaskStatus(task, BuildCoordinationStatus.ENQUEUED);
-            buildQueue.addReadyTask(task);
+            boolean added = buildQueue.addReadyTask(task);
+            if (added) {
+                updateBuildTaskStatus(task, BuildCoordinationStatus.ENQUEUED);
+            } else {
+                updateBuildTaskStatus(task, BuildCoordinationStatus.REJECTED, "Already in queue.");
+            }
         } else {
-            updateBuildTaskStatus(task, BuildCoordinationStatus.WAITING_FOR_DEPENDENCIES);
-            buildQueue.addWaitingTask(task, () -> updateBuildTaskStatus(task, BuildCoordinationStatus.ENQUEUED));
+            boolean added = buildQueue.addWaitingTask(task, () -> updateBuildTaskStatus(task, BuildCoordinationStatus.ENQUEUED));
+            if (added) {
+                updateBuildTaskStatus(task, BuildCoordinationStatus.WAITING_FOR_DEPENDENCIES);
+            } else {
+                updateBuildTaskStatus(task, BuildCoordinationStatus.REJECTED, "Already in queue.");
+            }
         }
     }
 
