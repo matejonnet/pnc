@@ -22,6 +22,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -32,6 +34,8 @@ import java.time.Instant;
 import java.util.Date;
 
 public class BasicModelTest extends AbstractModelTest {
+
+    private static final Logger log = LoggerFactory.getLogger(BasicModelTest.class);
 
     /** located in src/test/resources */
     private final static String DBUNIT_DATASET_FILE = "basic-model-test-data.xml";
