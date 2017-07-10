@@ -168,7 +168,7 @@
       <id>download-server</id>
       <activation>
         <property>
-          <name>eap6.zip.url</name>
+          <name>eap.zip.url</name>
         </property>
       </activation>
       <build>
@@ -190,18 +190,18 @@
                     <property environment="env" />
                     <fail message="JBOSS_HOME must not be set" if="env.JBOSS_HOME" />
 
-                    <echo>Preparing EAP 6.4 application server</echo>
-                    <echo>EAP URL ${eap6.zip.url}</echo>
-                    <fail message="Please specify EAP 6.4 zip file URL via: -Deap6.zip.url=" unless="eap6.zip.url" />
+                    <echo>Preparing EAP application server</echo>
+                    <echo>EAP URL ${eap.zip.url}</echo>
+                    <fail message="Please specify EAP 6.4 zip file URL via: -Deap.zip.url=" unless="eap.zip.url" />
                     <mkdir dir="${test.server.unpack.dir}" />
-                    <get usetimestamp="true" src="${eap6.zip.url}" skipexisting="true" dest="${test.server.unpack.dir}/${app.server}-${jboss.version}.zip" />
+                    <get usetimestamp="true" src="${eap.zip.url}" skipexisting="true" dest="${test.server.unpack.dir}/${app.server}-${jboss.version}.zip" />
                     <unzip src="${test.server.unpack.dir}/${app.server}-${jboss.version}.zip" dest="${test.server.unpack.dir}/" overwrite="true" />
 
-                    <echo file="${test.server.unpack.dir}/jboss-eap-6.4/standalone/configuration/application-users.properties" append="true">admin=c69ec5f656856757f633c7c4619f79be${line.separator}</echo> <!-- pass is user.1234 -->
-                    <echo file="${test.server.unpack.dir}/jboss-eap-6.4/standalone/configuration/application-roles.properties" append="true">admin=user${line.separator}</echo>
+                    <echo file="${test.server.unpack.dir}/jboss-eap/standalone/configuration/application-users.properties" append="true">admin=c69ec5f656856757f633c7c4619f79be${line.separator}</echo> <!-- pass is user.1234 -->
+                    <echo file="${test.server.unpack.dir}/jboss-eap/standalone/configuration/application-roles.properties" append="true">admin=user${line.separator}</echo>
 
-                    <echo file="${test.server.unpack.dir}/jboss-eap-6.4/standalone/configuration/application-users.properties" append="true">user=03fe1faad605609791524ce0b2c0ca30${line.separator}</echo> <!-- pass is pass.1234 -->
-                    <echo file="${test.server.unpack.dir}/jboss-eap-6.4/standalone/configuration/application-roles.properties" append="true">user=user${line.separator}</echo>
+                    <echo file="${test.server.unpack.dir}/jboss-eap/standalone/configuration/application-users.properties" append="true">user=03fe1faad605609791524ce0b2c0ca30${line.separator}</echo> <!-- pass is pass.1234 -->
+                    <echo file="${test.server.unpack.dir}/jboss-eap/standalone/configuration/application-roles.properties" append="true">user=user${line.separator}</echo>
 
                   </target>
                 </configuration>
@@ -216,7 +216,7 @@
       <id>configure-test-container</id>
       <activation>
         <property>
-          <name>eap6.zip.url</name>
+          <name>eap.zip.url</name>
         </property>
       </activation>
       <properties>

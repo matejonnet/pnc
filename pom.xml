@@ -135,7 +135,7 @@
 
     <!-- Integration tests -->
     <app.server>jboss-eap</app.server>
-    <jboss.version>6.4</jboss.version>
+    <jboss.version>7.0</jboss.version>
     <arquillian.container.groupId>org.jboss.as</arquillian.container.groupId>
     <arquillian.container.artifactId>jboss-as-arquillian-container-managed</arquillian.container.artifactId>
     <default.management.port>9999</default.management.port>
@@ -1483,8 +1483,8 @@
                 <configuration>
                   <rules>
                     <requireProperty>
-                      <property>eap6.zip.url</property>
-                      <message>You must set the location of the eap zip file "eap6.zip.url"</message>
+                      <property>eap.zip.url</property>
+                      <message>You must set the location of the eap zip file "eap.zip.url"</message>
                     </requireProperty>
                   </rules>
                   <fail>true</fail>
