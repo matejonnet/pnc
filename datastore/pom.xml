@@ -118,15 +118,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.jboss.as</groupId>
-      <artifactId>jboss-as-arquillian-container-managed</artifactId>
+      <groupId>org.wildfly.arquillian</groupId>
+      <artifactId>wildfly-arquillian-container-managed</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian.protocol</groupId>
-      <artifactId>arquillian-protocol-servlet</artifactId>
-      <scope>test</scope>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.wildfly.arquillian</groupId>-->
+      <!--<artifactId>wildfly-protocol-servlet</artifactId>-->
+      <!--<scope>test</scope>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>org.jboss.arquillian.extension</groupId>
       <artifactId>arquillian-transaction-jta</artifactId>
@@ -231,14 +231,14 @@
           <groupId>org.hsqldb</groupId>
           <artifactId>hsqldb</artifactId>
           <scope>test</scope>
-          <classifier>jdk6debug</classifier>
+          <classifier>jdk8debug</classifier>
         </dependency>
       </dependencies>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.jboss.as.plugins</groupId>
-            <artifactId>jboss-as-maven-plugin</artifactId>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>wildfly-maven-plugin</artifactId>
             <executions>
               <execution>
                 <id>start-server</id>
@@ -250,7 +250,6 @@
                   <jbossHome>${test.server.build.dir}</jbossHome>
                 </configuration>
               </execution>
-              <!-- HSQLDB JDBC driver installation and datasource configuration -->
               <execution>
                 <id>deploy-hsql-jdbc-driver</id>
                 <phase>test-compile</phase>
@@ -260,7 +259,8 @@
                 <configuration>
                   <groupId>org.hsqldb</groupId>
                   <artifactId>hsqldb</artifactId>
-                  <name>hsqldb-jdk6debug.jar</name>
+                  <classifier>jdk8debug</classifier>
+                  <!--<name>hsqldb-jdk8debug.jar</name>-->
                 </configuration>
               </execution>
               <execution>
@@ -271,19 +271,21 @@
                 </goals>
                 <configuration>
                   <address>subsystem=datasources,data-source=java:jboss/datasources/NewcastleTestDS</address>
-                  <resource>
-                    <enable-resource>true</enable-resource>
-                    <properties>
-                      <jndi-name>java:jboss/datasources/NewcastleTestDS</jndi-name>
-                      <enabled>true</enabled>
-                      <connection-url>jdbc:hsqldb:mem:newcastletestmemdb</connection-url>
-                      <driver-class>org.hsqldb.jdbc.JDBCDriver</driver-class>
-                      <driver-name>hsqldb-jdk6debug.jar</driver-name>
-                    </properties>
-                  </resource>
+                  <resources>
+                    <resource>
+                      <properties>
+                        <jndi-name>java:jboss/datasources/NewcastleTestDS</jndi-name>
+                        <enabled>true</enabled>
+                        <connection-url>jdbc:hsqldb:mem:newcastletestmemdb</connection-url>
+                        <driver-class>org.hsqldb.jdbc.JDBCDriver</driver-class>
+                        <driver-name>hsqldb-2.4.0-jdk8debug.jar</driver-name>
+                        <user-name>sa</user-name>
+                        <password>sa</password>
+                      </properties>
+                    </resource>
+                  </resources>
                 </configuration>
               </execution>
-              <!-- End HSQLDB configuraiton -->
               <execution>
                 <id>change-logging-level</id>
                 <phase>test-compile</phase>
