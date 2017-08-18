@@ -95,12 +95,9 @@
       <artifactId>arquillian-junit-container</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jboss.as</groupId>
-      <artifactId>jboss-as-arquillian-container-managed</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian.protocol</groupId>
-      <artifactId>arquillian-protocol-servlet</artifactId>
+      <groupId>org.wildfly.arquillian</groupId>
+      <artifactId>wildfly-arquillian-container-managed</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.extension</groupId>
@@ -186,7 +183,7 @@
                 <configuration>
                   <target>
                     <!-- If JBOSS_HOME is set it causes obscure errors with CLI in -->
-                    <!-- jboss-as-maven-plugin. -->
+                    <!-- wildfly-maven-plugin. -->
                     <property environment="env" />
                     <fail message="JBOSS_HOME must not be set" if="env.JBOSS_HOME" />
 
@@ -240,8 +237,8 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.jboss.as.plugins</groupId>
-            <artifactId>jboss-as-maven-plugin</artifactId>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>wildfly-maven-plugin</artifactId>
             <executions>
               <execution>
                 <id>start-server</id>
@@ -251,23 +248,6 @@
                 </goals>
                 <configuration>
                   <jbossHome>${test.server.build.dir}</jbossHome>
-                </configuration>
-              </execution>
-              <execution>
-                <id>add-nio</id>
-                <phase>test-compile</phase>
-                <goals>
-                  <goal>execute-commands</goal>
-                </goals>
-                <configuration>
-                  <execute-commands>
-                    <batch>true</batch>
-                    <commands>
-                      <command>
-                        /subsystem=web/connector=http/:write-attribute(name=protocol,value=org.apache.coyote.http11.Http11NioProtocol)
-                      </command>
-                    </commands>
-                  </execute-commands>
                 </configuration>
               </execution>
               <!-- HSQLDB JDBC driver installation and datasource configuration -->
@@ -280,7 +260,8 @@
                 <configuration>
                   <groupId>org.hsqldb</groupId>
                   <artifactId>hsqldb</artifactId>
-                  <name>hsqldb.jar</name>
+                  <classifier>jdk8debug</classifier>
+                  <!--<name>hsqldb-jdk8debug.jar</name>-->
                 </configuration>
               </execution>
               <execution>
@@ -291,16 +272,19 @@
                 </goals>
                 <configuration>
                   <address>subsystem=datasources,data-source=java:jboss/datasources/NewcastleTestDS</address>
-                  <resource>
-                    <enable-resource>true</enable-resource>
-                    <properties>
-                      <jndi-name>java:jboss/datasources/NewcastleTestDS</jndi-name>
-                      <enabled>true</enabled>
-                      <connection-url>jdbc:hsqldb:mem:newcastletestmemdb</connection-url>
-                      <driver-class>org.hsqldb.jdbc.JDBCDriver</driver-class>
-                      <driver-name>hsqldb.jar</driver-name>
-                    </properties>
-                  </resource>
+                  <resources>
+                    <resource>
+                      <properties>
+                        <jndi-name>java:jboss/datasources/NewcastleTestDS</jndi-name>
+                        <enabled>true</enabled>
+                        <connection-url>jdbc:hsqldb:mem:newcastletestmemdb</connection-url>
+                        <driver-class>org.hsqldb.jdbc.JDBCDriver</driver-class>
+                        <driver-name>hsqldb-2.4.0-jdk8debug.jar</driver-name>
+                        <user-name>sa</user-name>
+                        <password>sa</password>
+                      </properties>
+                    </resource>
+                  </resources>
                 </configuration>
               </execution>
               <!-- End HSQLDB configuraiton -->
@@ -327,7 +311,6 @@
                   <address>subsystem=datasources</address>
                   <resources>
                     <resource>
-                      <enable-resource>true</enable-resource>
                       <address>xa-data-source=java:jboss/datasources/NewcastleDS</address>
                       <properties>
                         <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
