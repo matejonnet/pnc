@@ -182,7 +182,7 @@ public class DefaultBuildCoordinatorTest {
 
         @Override
         public T answer(InvocationOnMock invocation) throws Throwable {
-            arguments.add(invocation.getArgumentAt(0, argumentType));
+            arguments.add(invocation.getArgument(0));
             return null;
         }
     }

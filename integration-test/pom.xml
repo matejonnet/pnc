@@ -78,8 +78,17 @@
       <artifactId>json</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.jayway.restassured</groupId>
+      <artifactId>rest-assured</artifactId>
+    </dependency>
+    <!-- TODO only here as lombok is too eager to do everything-->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
-    <!-- Mocks -->
     <dependency>
       <groupId>org.jboss.pnc</groupId>
       <artifactId>pnc-mock</artifactId>
@@ -123,6 +132,22 @@
     <dependency> <!--Required to add lib to Arquillian deployment. -->
       <groupId>org.jboss</groupId>
       <artifactId>jboss-common-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-joda</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
     </dependency>
   </dependencies>
 
@@ -367,10 +392,26 @@
                     <batch>true</batch>
                     <commands>
                       <command>
-                        /subsystem=logging/logger=org.jboss.pnc:add
+                        /subsystem=logging/logger=org:add(level=INFO)
                       </command>
                       <command>
-                        /subsystem=logging/logger=org.jboss.pnc:change-log-level(level=DEBUG)
+                        /subsystem=logging/logger=io:add(level=INFO)
+                      </command>
+                      <command>
+                        /subsystem=logging/logger=org.jboss.pnc:add(level=DEBUG)
+                      </command>
+                      <command>
+                        /subsystem=logging/console-handler=CONSOLE:change-log-level(level=TRACE)
+                      </command>
+                      <command>
+                        /subsystem=logging/root-logger=ROOT:change-root-log-level(level=TRACE)
+                      </command>
+
+                      <command>
+                        /subsystem=logging/logger=org.hibernate.SQL:add(level=DEBUG)
+                      </command>
+                      <command>
+                        /subsystem=logging/logger=org.hibernate.type:add(level=TRACE)
                       </command>
                     </commands>
                   </execute-commands>

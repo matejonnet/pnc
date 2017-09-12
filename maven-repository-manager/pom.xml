@@ -145,6 +145,16 @@
       <artifactId>swagger-annotations</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+    </dependency>
+    <!-- TODO only here as lombok is too eager to do everything-->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   
   <dependencyManagement>

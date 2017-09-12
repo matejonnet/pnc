@@ -17,7 +17,6 @@
  */
 package org.jboss.pnc.model;
 
-import org.apache.maven.model.Repository;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
