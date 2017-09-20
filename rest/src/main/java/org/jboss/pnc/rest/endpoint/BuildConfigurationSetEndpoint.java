@@ -31,7 +31,6 @@ import org.jboss.pnc.rest.provider.BuildConfigurationSetProvider;
 import org.jboss.pnc.rest.provider.BuildRecordProvider;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationRest;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationSetRest;
-import org.jboss.pnc.rest.restmodel.response.Singleton;
 import org.jboss.pnc.rest.restmodel.response.error.ErrorResponseRest;
 import org.jboss.pnc.rest.swagger.response.BuildConfigurationPage;
 import org.jboss.pnc.rest.swagger.response.BuildConfigurationSetPage;
@@ -72,7 +71,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
@@ -167,65 +165,10 @@ public class BuildConfigurationSetEndpoint extends AbstractEndpoint<BuildConfigu
             @ApiResponse(code = SERVER_ERROR_CODE, message = SERVER_ERROR_DESCRIPTION, response = ErrorResponseRest.class)
     })
     @POST
-//    @Transactional
     public Response createNew(@NotNull @Valid BuildConfigurationSetRest buildConfigurationSetRest, @Context UriInfo uriInfo)
             throws ValidationException {
         logger.debug("Creating new BuildConfigurationSet: {}", buildConfigurationSetRest.toString());
-//        Response response = super.createNew(buildConfigurationSetRest, uriInfo);
-
-        int id = basicProvider.store(buildConfigurationSetRest);
-        UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getRequestUri()).path("{id}");
-
-        logger.trace("allForBuildConfigurationSet1 {}", getBuildConfigurations(id));
-
-//        BuildConfigurationSetRest specific = basicProvider.getSpecific(id);
-        BuildConfigurationSetRest specific = buildConfigurationSetProvider.getSpecific(id);
-//        BuildConfigurationSet dbEntity = buildConfigurationSetRepository.queryById(id);
-//        BuildConfigurationSetRest specific = new BuildConfigurationSetRest(dbEntity);
-
-        logger.trace("allForBuildConfigurationSet2 {}", getBuildConfigurations(id));
-
-        Response saved = Response.created(uriBuilder.build(id)).entity(new Singleton(specific)).build();
-
-        logger.trace("allForBuildConfigurationSet3 {}", getBuildConfigurations(id));
-
-//        logger.debug("Storing entity: " + buildConfigurationSetRest.toString());
-//        BuildConfigurationSet newDbEntity = buildConfigurationSetRest.toDBEntityBuilder().build();
-//        logger.trace("newDbEntity: {}", newDbEntity);
-//
-//        BuildConfigurationSet.Builder bcsBuilder = BuildConfigurationSet.Builder.newBuilder();
-//        bcsBuilder.name(buildConfigurationSetRest.getName());
-//
-//        for (Integer bcId : buildConfigurationSetRest.getBuildConfigurationIds()) {
-//            bcsBuilder.buildConfiguration(BuildConfiguration.Builder.newBuilder().id(bcId).build());
-//        }
-//
-//        BuildConfigurationSet newDbEntityManual = bcsBuilder.build();
-//
-//        logger.trace("newDbEntity: {}", newDbEntityManual);
-//
-//        BuildConfigurationSet savedEntity = buildConfigurationSetRepository.save(newDbEntityManual);
-//            Integer id = savedEntity.getId();
-//
-//        logger.trace("allForBuildConfigurationSet1 {}", getBuildConfigurations(id));
-//        UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getRequestUri()).path("{id}");
-//        logger.trace("allForBuildConfigurationSet2 {}", getBuildConfigurations(id));
-//
-//        //BuildConfigurationSetRest specific = basicProvider.getSpecific(id);
-//
-//        BuildConfigurationSet dbEntity = buildConfigurationSetRepository.queryById(id);
-//        logger.trace("allForBuildConfigurationSet2.1 {}", getBuildConfigurations(id));
-//        logger.trace("dbEntity {}", dbEntity);
-//
-//        logger.trace("allForBuildConfigurationSet2.2 {}", getBuildConfigurations(id));
-//        BuildConfigurationSetRest buildConfigurationSetRestFromDbEntity = new BuildConfigurationSetRest(dbEntity);
-//        logger.trace("allForBuildConfigurationSet2.3 {}", getBuildConfigurations(id));
-//        Singleton singleton = new Singleton(buildConfigurationSetRestFromDbEntity);
-//
-//        logger.trace("allForBuildConfigurationSet3 {}", getBuildConfigurations(id));
-//        Response saved = Response.created(uriBuilder.build(id)).entity(singleton).build();
-//        logger.trace("allForBuildConfigurationSet4 {}", getBuildConfigurations(id));
-        return saved;
+        return super.createNew(buildConfigurationSetRest, uriInfo);
     }
 
     private List<BuildConfiguration> getBuildConfigurations(Integer id) {
