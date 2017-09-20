@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.rest.provider.BuildConfigSetRecordProvider;
@@ -30,6 +31,7 @@ import org.jboss.pnc.rest.provider.BuildConfigurationSetProvider;
 import org.jboss.pnc.rest.provider.BuildRecordProvider;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationRest;
 import org.jboss.pnc.rest.restmodel.BuildConfigurationSetRest;
+import org.jboss.pnc.rest.restmodel.response.Singleton;
 import org.jboss.pnc.rest.restmodel.response.error.ErrorResponseRest;
 import org.jboss.pnc.rest.swagger.response.BuildConfigurationPage;
 import org.jboss.pnc.rest.swagger.response.BuildConfigurationSetPage;
@@ -45,6 +47,9 @@ import org.jboss.pnc.rest.validation.exceptions.ValidationException;
 import org.jboss.pnc.spi.builddriver.exception.BuildDriverException;
 import org.jboss.pnc.spi.datastore.Datastore;
 import org.jboss.pnc.spi.datastore.DatastoreException;
+import org.jboss.pnc.spi.datastore.predicates.BuildConfigurationPredicates;
+import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationRepository;
+import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationSetRepository;
 import org.jboss.pnc.spi.exception.CoreException;
 import org.jboss.pnc.spi.repositorymanager.RepositoryManagerException;
 import org.slf4j.Logger;
@@ -67,6 +72,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
@@ -161,10 +167,77 @@ public class BuildConfigurationSetEndpoint extends AbstractEndpoint<BuildConfigu
             @ApiResponse(code = SERVER_ERROR_CODE, message = SERVER_ERROR_DESCRIPTION, response = ErrorResponseRest.class)
     })
     @POST
+//    @Transactional
     public Response createNew(@NotNull @Valid BuildConfigurationSetRest buildConfigurationSetRest, @Context UriInfo uriInfo)
             throws ValidationException {
-        return super.createNew(buildConfigurationSetRest, uriInfo);
+        logger.debug("Creating new BuildConfigurationSet: {}", buildConfigurationSetRest.toString());
+//        Response response = super.createNew(buildConfigurationSetRest, uriInfo);
+
+        int id = basicProvider.store(buildConfigurationSetRest);
+        UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getRequestUri()).path("{id}");
+
+        logger.trace("allForBuildConfigurationSet1 {}", getBuildConfigurations(id));
+
+//        BuildConfigurationSetRest specific = basicProvider.getSpecific(id);
+        BuildConfigurationSetRest specific = buildConfigurationSetProvider.getSpecific(id);
+//        BuildConfigurationSet dbEntity = buildConfigurationSetRepository.queryById(id);
+//        BuildConfigurationSetRest specific = new BuildConfigurationSetRest(dbEntity);
+
+        logger.trace("allForBuildConfigurationSet2 {}", getBuildConfigurations(id));
+
+        Response saved = Response.created(uriBuilder.build(id)).entity(new Singleton(specific)).build();
+
+        logger.trace("allForBuildConfigurationSet3 {}", getBuildConfigurations(id));
+
+//        logger.debug("Storing entity: " + buildConfigurationSetRest.toString());
+//        BuildConfigurationSet newDbEntity = buildConfigurationSetRest.toDBEntityBuilder().build();
+//        logger.trace("newDbEntity: {}", newDbEntity);
+//
+//        BuildConfigurationSet.Builder bcsBuilder = BuildConfigurationSet.Builder.newBuilder();
+//        bcsBuilder.name(buildConfigurationSetRest.getName());
+//
+//        for (Integer bcId : buildConfigurationSetRest.getBuildConfigurationIds()) {
+//            bcsBuilder.buildConfiguration(BuildConfiguration.Builder.newBuilder().id(bcId).build());
+//        }
+//
+//        BuildConfigurationSet newDbEntityManual = bcsBuilder.build();
+//
+//        logger.trace("newDbEntity: {}", newDbEntityManual);
+//
+//        BuildConfigurationSet savedEntity = buildConfigurationSetRepository.save(newDbEntityManual);
+//            Integer id = savedEntity.getId();
+//
+//        logger.trace("allForBuildConfigurationSet1 {}", getBuildConfigurations(id));
+//        UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getRequestUri()).path("{id}");
+//        logger.trace("allForBuildConfigurationSet2 {}", getBuildConfigurations(id));
+//
+//        //BuildConfigurationSetRest specific = basicProvider.getSpecific(id);
+//
+//        BuildConfigurationSet dbEntity = buildConfigurationSetRepository.queryById(id);
+//        logger.trace("allForBuildConfigurationSet2.1 {}", getBuildConfigurations(id));
+//        logger.trace("dbEntity {}", dbEntity);
+//
+//        logger.trace("allForBuildConfigurationSet2.2 {}", getBuildConfigurations(id));
+//        BuildConfigurationSetRest buildConfigurationSetRestFromDbEntity = new BuildConfigurationSetRest(dbEntity);
+//        logger.trace("allForBuildConfigurationSet2.3 {}", getBuildConfigurations(id));
+//        Singleton singleton = new Singleton(buildConfigurationSetRestFromDbEntity);
+//
+//        logger.trace("allForBuildConfigurationSet3 {}", getBuildConfigurations(id));
+//        Response saved = Response.created(uriBuilder.build(id)).entity(singleton).build();
+//        logger.trace("allForBuildConfigurationSet4 {}", getBuildConfigurations(id));
+        return saved;
     }
+
+    private List<BuildConfiguration> getBuildConfigurations(Integer id) {
+        return buildConfigurationRepository.queryWithPredicates(
+                    BuildConfigurationPredicates.withBuildConfigurationSetId(id));
+    }
+
+    @Inject
+    BuildConfigurationRepository buildConfigurationRepository;
+
+    @Inject
+    BuildConfigurationSetRepository buildConfigurationSetRepository;
 
     @ApiOperation(value = "Gets a specific Build Configuration Set")
     @ApiResponses(value = {
@@ -221,8 +294,8 @@ public class BuildConfigurationSetEndpoint extends AbstractEndpoint<BuildConfigu
             @ApiParam(value = SORTING_DESCRIPTION) @QueryParam(SORTING_QUERY_PARAM) String sort,
             @ApiParam(value = QUERY_DESCRIPTION, required = false) @QueryParam(QUERY_QUERY_PARAM) String q,
             @ApiParam(value = "Build Configuration Set id", required = true) @PathParam("id") Integer id) {
-        return fromCollection(buildConfigurationProvider.getAllForBuildConfigurationSet(pageIndex, pageSize, sort, q,
-                id));
+        return fromCollection(
+                buildConfigurationProvider.getAllForBuildConfigurationSet(pageIndex, pageSize, sort, q, id));
     }
 
     @PUT

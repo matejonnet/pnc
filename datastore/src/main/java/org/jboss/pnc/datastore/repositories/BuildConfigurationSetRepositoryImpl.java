@@ -20,14 +20,23 @@ package org.jboss.pnc.datastore.repositories;
 import org.jboss.pnc.datastore.repositories.internal.AbstractRepository;
 import org.jboss.pnc.datastore.repositories.internal.BuildConfigurationSetSpringRepository;
 import org.jboss.pnc.model.BuildConfigurationSet;
+import org.jboss.pnc.spi.datastore.predicates.BuildConfigurationSetPredicates;
+import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationRepository;
 import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationSetRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import java.util.List;
 
 @Stateless
 public class BuildConfigurationSetRepositoryImpl extends AbstractRepository<BuildConfigurationSet, Integer> implements
         BuildConfigurationSetRepository {
+
+    private final Logger logger = LoggerFactory.getLogger(BuildConfigurationSetRepositoryImpl.class);
+
+    BuildConfigurationRepository buildConfigurationRepository;
 
     /**
      * @deprecated Created for CDI.
@@ -38,7 +47,72 @@ public class BuildConfigurationSetRepositoryImpl extends AbstractRepository<Buil
     }
 
     @Inject
-    public BuildConfigurationSetRepositoryImpl(BuildConfigurationSetSpringRepository buildConfigurationSetSpringRepository) {
+    public BuildConfigurationSetRepositoryImpl(
+            BuildConfigurationSetSpringRepository buildConfigurationSetSpringRepository,
+            BuildConfigurationRepository buildConfigurationRepository
+    ) {
         super(buildConfigurationSetSpringRepository, buildConfigurationSetSpringRepository);
+        this.buildConfigurationRepository = buildConfigurationRepository;
+    }
+
+    @Override
+    public List<BuildConfigurationSet> withProductVersionId(Integer id) {
+        return queryWithPredicates(BuildConfigurationSetPredicates.withProductVersionId(id));
+    }
+
+    @Override
+//    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public BuildConfigurationSet save(BuildConfigurationSet buildConfigurationSet) {
+//        BuildConfigurationSet.Builder builder = BuildConfigurationSet.Builder.newBuilder()
+//                .name(buildConfigurationSet.getName())
+//                .buildConfigSetRecords(buildConfigurationSet.getBuildConfigSetRecords())
+//                .buildConfigurations(buildConfigurationSet.getBuildConfigurations())
+//                .productVersion(buildConfigurationSet.getProductVersion());
+//        Integer id = buildConfigurationSet.getId();
+//        if (id != null) {
+//            builder.id(id);
+//        }
+//
+//        return springRepository.save(builder.build());
+
+        logger.trace("buildConfigurationSet: {}" , buildConfigurationSet);
+
+        BuildConfigurationSet saved = springRepository.save(buildConfigurationSet);
+//        springRepository.flush(); does not help
+        return saved;
+
+//        Set<BuildConfiguration> newBuildConfigurations = new HashSet<>();
+//        logger.debug("Saving BuildConfigurationSet: {}.", buildConfigurationSet);
+//        BuildConfigurationSet buildConfigurationSetSaved = springRepository.save(buildConfigurationSet);
+//
+//        for (BuildConfiguration buildConfigurationToAdd : buildConfigurationSet.getBuildConfigurations()) {
+//            Integer id = buildConfigurationToAdd.getId();
+//            if (id == null) {
+//                logger.warn("Missing the id of linked BuildConfiguration.");
+//                throw new RuntimeException("Invalid Entity: Missing the id of linked BuildConfiguration."); //TODO Typed exception
+//            }
+//            BuildConfiguration buildConfigurationInDb = buildConfigurationRepository.queryById(id);
+//            if (buildConfigurationInDb == null) {
+//                logger.warn("Trying to link to non persisted BC: {}.", buildConfigurationToAdd);
+//                throw new RuntimeException("Invalid Entity: Trying to link Non existing BuildConfiguration."); //TODO Typed exception
+//            }
+//            logger.trace("Linking BC {} to BCSet {}.", buildConfigurationInDb.getId(), buildConfigurationSetSaved.getId());
+//            buildConfigurationSetSaved.getBuildConfigurations().add(buildConfigurationInDb);
+//            buildConfigurationInDb.getBuildConfigurationSets().add(buildConfigurationSetSaved);
+//            buildConfigurationRepository.save(buildConfigurationInDb);
+//            newBuildConfigurations.add(buildConfigurationInDb);
+//        }
+//
+//
+//        if (buildConfigurationSet.getId() != null) {
+//            Set<BuildConfiguration> buildConfigurationsInDb = buildConfigurationSetSaved.getBuildConfigurations();
+//            logger.trace("buildConfigurationsInDb: {}.", buildConfigurationsInDb);
+//            Set<BuildConfiguration> buildConfigurationsToRemove = Sets.difference(buildConfigurationsInDb, newBuildConfigurations);
+//            for (BuildConfiguration buildConfigurationToRemove : buildConfigurationsToRemove) {
+//                logger.trace("UnLinking BC from BCSet {}.", buildConfigurationToRemove.getId(), buildConfigurationSetSaved.getId());
+//                buildConfigurationToRemove.getBuildConfigurationSets().remove(buildConfigurationSetSaved);
+//            }
+//        }
+//        return springRepository.save(buildConfigurationSetSaved);
     }
 }
