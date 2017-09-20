@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -67,52 +66,14 @@ public class BuildConfigurationSetProvider extends AbstractProvider<BuildConfigu
     }
 
     @Override
-//    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public BuildConfigurationSetRest getSpecific(Integer id) {
-        logger.trace("allForBuildConfigurationSet1.1 {}", getBuildConfigurations(id));
-
         BuildConfigurationSet dbEntity = repository.queryById(id);
-
-        logger.trace("allForBuildConfigurationSet1.2 {}", getBuildConfigurations(id));
-
-        BuildConfigurationSetRest buildConfigurationSetRest;
         try {
-//            buildConfigurationSetRest = new BuildConfigurationSetRest(dbEntity);
-            buildConfigurationSetRest = new BuildConfigurationSetRest();
-
-            logger.trace("allForBuildConfigurationSet1.2.1 {}", getBuildConfigurations(id));
-            buildConfigurationSetRest.setId(dbEntity.getId());
-            buildConfigurationSetRest.setName(dbEntity.getName());
-
-            logger.trace("allForBuildConfigurationSet1.2.2 {}", getBuildConfigurations(id));
-            if (dbEntity.getProductVersion() != null) {
-                buildConfigurationSetRest.setProductVersionId(dbEntity.getProductVersion().getId());
-            }
-
-            logger.trace("allForBuildConfigurationSet1.2.3 {}", getBuildConfigurations(id));
-            Set<Integer> buildConfigurationIds = new HashSet<>();
-            Set<BuildConfiguration> buildConfigurations = dbEntity.getBuildConfigurations();
-            logger.trace("allForBuildConfigurationSet1.2.3.1 {}", getBuildConfigurations(id));
-
-//            buildConfigurations.forEach(bc -> buildConfigurationIds.add(bc.getId()));
-            for (BuildConfiguration bc : buildConfigurations) {
-                buildConfigurationIds.add(bc.getId());
-            }
-
-            logger.trace("allForBuildConfigurationSet1.2.4 {}", getBuildConfigurations(id));
-            buildConfigurationSetRest.setBuildConfigurationIds(new ArrayList<>(buildConfigurationIds));
-            logger.trace("allForBuildConfigurationSet1.2.5 {}", getBuildConfigurations(id));
-
-        } catch (Throwable e) {
+            return new BuildConfigurationSetRest(dbEntity);
+        } catch (Exception e) {
             logger.error("Cannot create rest entity.", e);
-//            throw e;
             return null;
         }
-
-        logger.trace("allForBuildConfigurationSet1.3 {}", getBuildConfigurations(id));
-
-        return buildConfigurationSetRest;
-
     }
 
     @Override

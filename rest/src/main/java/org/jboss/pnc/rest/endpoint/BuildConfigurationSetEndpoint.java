@@ -22,7 +22,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.rest.provider.BuildConfigSetRecordProvider;
@@ -46,9 +45,6 @@ import org.jboss.pnc.rest.validation.exceptions.ValidationException;
 import org.jboss.pnc.spi.builddriver.exception.BuildDriverException;
 import org.jboss.pnc.spi.datastore.Datastore;
 import org.jboss.pnc.spi.datastore.DatastoreException;
-import org.jboss.pnc.spi.datastore.predicates.BuildConfigurationPredicates;
-import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationRepository;
-import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationSetRepository;
 import org.jboss.pnc.spi.exception.CoreException;
 import org.jboss.pnc.spi.repositorymanager.RepositoryManagerException;
 import org.slf4j.Logger;
@@ -170,17 +166,6 @@ public class BuildConfigurationSetEndpoint extends AbstractEndpoint<BuildConfigu
         logger.debug("Creating new BuildConfigurationSet: {}", buildConfigurationSetRest.toString());
         return super.createNew(buildConfigurationSetRest, uriInfo);
     }
-
-    private List<BuildConfiguration> getBuildConfigurations(Integer id) {
-        return buildConfigurationRepository.queryWithPredicates(
-                    BuildConfigurationPredicates.withBuildConfigurationSetId(id));
-    }
-
-    @Inject
-    BuildConfigurationRepository buildConfigurationRepository;
-
-    @Inject
-    BuildConfigurationSetRepository buildConfigurationSetRepository;
 
     @ApiOperation(value = "Gets a specific Build Configuration Set")
     @ApiResponses(value = {
