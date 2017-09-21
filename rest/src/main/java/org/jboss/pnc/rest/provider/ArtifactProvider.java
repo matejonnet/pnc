@@ -96,6 +96,7 @@ public class ArtifactProvider extends AbstractProvider<Artifact, ArtifactRest> {
      * 
      * @return Returns requested artifacts or empty collection if BuildRecord with the specified ID doesn't exists
      */
+    @Deprecated
     public CollectionInfo<ArtifactRest> getBuiltArtifactsForBuildRecord(int pageIndex, int pageSize, String sortingRsql, String query,
             int buildRecordId) {
         return queryForCollection(pageIndex, pageSize, sortingRsql, query, withBuildRecordId(buildRecordId));
