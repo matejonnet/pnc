@@ -85,7 +85,7 @@ public class DefaultBuildCoordinatorTest {
     private Event<BuildCoordinationStatusChangedEvent> buildStatusChangedEventNotifier;
 
     @InjectMocks
-    private DatastoreAdapter datastoreAdapter = new DatastoreAdapter();
+    private DatastoreAdapter datastoreAdapter;
 
     private BuildCoordinator coordinator;
 

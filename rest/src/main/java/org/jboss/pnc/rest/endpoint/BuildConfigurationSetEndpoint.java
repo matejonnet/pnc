@@ -72,6 +72,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.jboss.pnc.rest.configuration.SwaggerConstants.CONFLICTED_CODE;
 import static org.jboss.pnc.rest.configuration.SwaggerConstants.CONFLICTED_DESCRIPTION;
@@ -316,7 +317,10 @@ public class BuildConfigurationSetEndpoint extends AbstractEndpoint<BuildConfigu
         } else {
             result = buildTriggerer.triggerBuildConfigurationSet(id, currentUser, false, rebuildAll, new URL(callbackUrl));
         }
-
+        logger.info("Started build configuration set id: {}. Build Tasks: {}",
+                id,
+                result.getBuildTasks().stream().map(bt -> Integer.toString(bt.getId())).collect(
+                Collectors.joining()));
         return buildRecordProvider.createResultSet(result, uriInfo);
     }
 

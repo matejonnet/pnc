@@ -172,17 +172,42 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
             boolean keepPodAliveAfterFailure,
             boolean forceRebuildAll) throws CoreException {
 
+        Set<BuildConfiguration> buildConfigurations = datastoreAdapter.getBuildConfigurations(buildConfigurationSet);
+
         BuildSetTask buildSetTask = buildTasksInitializer.createBuildSetTask(
                 buildConfigurationSet,
                 user,
                 forceRebuildAll,
                 keepPodAliveAfterFailure,
-                this::buildRecordIdSupplier);
+                this::buildRecordIdSupplier,
+                buildConfigurations);
         updateBuildSetTaskStatus(buildSetTask, BuildSetStatus.NEW);
+
         checkForEmptyBuildSetTask(buildSetTask);
+        if (!forceRebuildAll) {
+            checkIfAnyBuildConfigurationNeedsARebuild(buildSetTask, buildConfigurationSet);
+        }
+
         checkForCyclicDependencies(buildSetTask);
         build(buildSetTask);
+//        log.info("Started build set with id: {}; BuildConfiguraitonSet: {}; created buildTasks: {}",
+//                buildSetTask.getId(),
+//                buildSetTask.getBuildConfigurationSet(),
+//                buildSetTask.getBuildTasks().stream().map(bt -> Integer.toString(bt.getId())).collect(Collectors.joining()));
         return buildSetTask;
+    }
+
+    private void checkIfAnyBuildConfigurationNeedsARebuild(BuildSetTask buildSetTask, BuildConfigurationSet buildConfigurationSet) {
+        Set<BuildConfiguration> buildConfigurations = buildConfigurationSet.getBuildConfigurations();
+        int requiresRebuild = buildConfigurations.size();
+        for (BuildConfiguration buildConfiguration : buildConfigurations) {
+            if (!datastoreAdapter.requiresRebuild(buildConfiguration)) {
+                requiresRebuild--;
+            }
+        }
+        if (requiresRebuild == 0) {
+            updateBuildSetTaskStatus(buildSetTask, BuildSetStatus.REJECTED, "All build configs were previously built");
+        }
     }
 
     private void build(BuildSetTask buildSetTask) {
@@ -273,12 +298,7 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
      */
     private void checkForEmptyBuildSetTask(BuildSetTask buildSetTask) {
         if (buildSetTask.getBuildTasks() == null || buildSetTask.getBuildTasks().isEmpty()) {
-            if (buildSetTask.getBuildConfigurationSet().getBuildConfigurations() == null
-                    || buildSetTask.getBuildConfigurationSet().getBuildConfigurations().isEmpty()) {
-                updateBuildSetTaskStatus(buildSetTask, BuildSetStatus.REJECTED, "Build config set is empty");
-            } else {
-                updateBuildSetTaskStatus(buildSetTask, BuildSetStatus.REJECTED, "All build configs were previously built");
-            }
+            updateBuildSetTaskStatus(buildSetTask, BuildSetStatus.REJECTED, "Build config set is empty");
         }
     }
 
