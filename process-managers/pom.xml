@@ -82,11 +82,7 @@
       <groupId>org.jboss.pnc</groupId>
       <artifactId>test-common</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <scope>test</scope>
-    </dependency>
+
     <!-- TODO only here as lombok is too eager to do everything-->
     <dependency>
       <groupId>org.hibernate</groupId>
