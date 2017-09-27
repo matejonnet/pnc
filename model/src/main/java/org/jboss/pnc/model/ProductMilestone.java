@@ -130,7 +130,7 @@ public class ProductMilestone implements GenericEntity<Integer> {
      * The BuildRecordSets associated with a milestone should be created when the milestone
      * is first created, and never updated after that.
      */
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER) //TODO remove eager fetch
     @JoinTable(name = "product_milestone_distributed_artifacts_map", joinColumns = {
             @JoinColumn(name = "product_milestone_id", referencedColumnName = "id") }, inverseJoinColumns = {
                     @JoinColumn(name = "artifact_id", referencedColumnName = "id") })
@@ -320,14 +320,7 @@ public class ProductMilestone implements GenericEntity<Integer> {
                 productMilestone.setProductVersion(productVersion);
             }
 
-//            if (performedBuilds == null) {
-//                performedBuilds = new HashSet<>();
-//            }
             productMilestone.setPerformedBuilds(performedBuilds);
-
-//            if (distributedArtifacts == null) {
-//                distributedArtifacts = new HashSet<>();
-//            }
             productMilestone.setDistributedArtifacts(distributedArtifacts);
 
             if (productRelease != null) {

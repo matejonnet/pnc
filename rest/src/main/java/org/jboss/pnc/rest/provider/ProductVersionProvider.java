@@ -120,16 +120,18 @@ public class ProductVersionProvider extends AbstractProvider<ProductVersion, Pro
 
         productVersion.setBuildConfigurationSets(addedBCSets);
         validateBeforeUpdating(id, new ProductVersionRest(productVersion));
-        logger.trace("About to remove BCSets from productVersion: {}",
-                removedBCSets.stream().map(set -> set.getId().toString()).collect(Collectors.joining()));
-
+        if (logger.isTraceEnabled()) {
+            logger.trace("About to remove BCSets from productVersion: {}",
+                    removedBCSets.stream().map(set -> set.getId().toString()).collect(Collectors.joining()));
+        }
         removedBCSets.forEach(removed -> {
             removed.setProductVersion(null);
             buildConfigurationSetRepository.save(removed);
         });
-        logger.trace("About to add BCSets to productVersion: {}",
-                addedBCSets.stream().map(set -> set.getId().toString()).collect(Collectors.joining()));
-
+        if (logger.isTraceEnabled()) {
+            logger.trace("About to add BCSets to productVersion: {}",
+                    addedBCSets.stream().map(set -> set.getId().toString()).collect(Collectors.joining()));
+        }
         addedBCSets.forEach(added -> {
             added.setProductVersion(productVersion);
             productVersion.getBuildConfigurationSets().add(added);

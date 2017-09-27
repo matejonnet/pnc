@@ -190,10 +190,6 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
 
         checkForCyclicDependencies(buildSetTask);
         build(buildSetTask);
-//        log.info("Started build set with id: {}; BuildConfiguraitonSet: {}; created buildTasks: {}",
-//                buildSetTask.getId(),
-//                buildSetTask.getBuildConfigurationSet(),
-//                buildSetTask.getBuildTasks().stream().map(bt -> Integer.toString(bt.getId())).collect(Collectors.joining()));
         return buildSetTask;
     }
 

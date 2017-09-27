@@ -65,7 +65,7 @@ public class BuildConfigurationSetProvider extends AbstractProvider<BuildConfigu
         this.buildConfigurationRepository = buildConfigurationRepository;
     }
 
-    @Override
+    @Override //better error logging
     public BuildConfigurationSetRest getSpecific(Integer id) {
         BuildConfigurationSet dbEntity = repository.queryById(id);
         try {
@@ -92,7 +92,7 @@ public class BuildConfigurationSetProvider extends AbstractProvider<BuildConfigu
             try {
                 return new BuildConfigurationSetRest(buildConfigurationSet);
             } catch (Exception e) {
-                e.printStackTrace(); //TODO log
+                logger.error("Cannot create rset entity.", e);
                 throw new RuntimeException(e);
             }
         };
@@ -104,7 +104,7 @@ public class BuildConfigurationSetProvider extends AbstractProvider<BuildConfigu
             try {
                 return buildConfigSetRest.toDBEntityBuilder().build();
             } catch (Exception e) {
-                e.printStackTrace(); //TODO log
+                logger.error("Cannot create rset entity.", e);
                 throw new RuntimeException(e);
             }
         };

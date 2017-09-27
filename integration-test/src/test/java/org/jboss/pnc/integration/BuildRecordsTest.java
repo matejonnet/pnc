@@ -313,7 +313,6 @@ public class BuildRecordsTest {
     }
 
     @Test
-    @Ignore
     public void shouldGetOnlyBuiltArtifacts() {
         // when
         Collection<ArtifactRest> artifacts = artifactProvider.getBuiltArtifactsForBuildRecord(0, 999, null, null, buildRecord2Id).getContent();

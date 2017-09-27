@@ -21,10 +21,7 @@ import org.jboss.pnc.datastore.repositories.internal.AbstractRepository;
 import org.jboss.pnc.datastore.repositories.internal.BuildConfigurationSetSpringRepository;
 import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.spi.datastore.predicates.BuildConfigurationSetPredicates;
-import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationRepository;
 import org.jboss.pnc.spi.datastore.repositories.BuildConfigurationSetRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -33,10 +30,6 @@ import java.util.List;
 @Stateless
 public class BuildConfigurationSetRepositoryImpl extends AbstractRepository<BuildConfigurationSet, Integer> implements
         BuildConfigurationSetRepository {
-
-    private final Logger logger = LoggerFactory.getLogger(BuildConfigurationSetRepositoryImpl.class);
-
-    BuildConfigurationRepository buildConfigurationRepository;
 
     /**
      * @deprecated Created for CDI.
@@ -47,12 +40,8 @@ public class BuildConfigurationSetRepositoryImpl extends AbstractRepository<Buil
     }
 
     @Inject
-    public BuildConfigurationSetRepositoryImpl(
-            BuildConfigurationSetSpringRepository buildConfigurationSetSpringRepository,
-            BuildConfigurationRepository buildConfigurationRepository
-    ) {
+    public BuildConfigurationSetRepositoryImpl(BuildConfigurationSetSpringRepository buildConfigurationSetSpringRepository) {
         super(buildConfigurationSetSpringRepository, buildConfigurationSetSpringRepository);
-        this.buildConfigurationRepository = buildConfigurationRepository;
     }
 
     @Override

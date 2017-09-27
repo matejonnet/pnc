@@ -105,11 +105,6 @@ public class DefaultSequenceHandlerRepository implements SequenceHandlerReposito
         Work work = new Work() {
             @Override
             public void execute(Connection connection) throws SQLException {
-//                Session session = (Session) entityManager.getDelegate();
-//                SessionFactory sessionFactory = session.getSessionFactory();
-//                Dialect dialect = ((SessionFactoryImplementor) sessionFactory).getDialect();
-//                DialectResolutionInfo
-
                 DialectResolver dialectResolver = new StandardDialectResolver();
                 Dialect dialect = dialectResolver.resolveDialect(getResolutionInfo(connection));
                 PreparedStatement preparedStatement = null;
