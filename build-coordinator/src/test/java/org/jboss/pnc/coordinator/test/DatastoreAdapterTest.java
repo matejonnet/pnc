@@ -18,6 +18,7 @@
 
 package org.jboss.pnc.coordinator.test;
 
+import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.coordinator.builder.datastore.DatastoreAdapter;
 import org.jboss.pnc.mock.builddriver.BuildDriverResultMock;
 import org.jboss.pnc.mock.datastore.DatastoreMock;
@@ -41,8 +42,12 @@ import org.jboss.pnc.spi.executor.BuildExecutionConfiguration;
 import org.jboss.pnc.spi.repositorymanager.RepositoryManagerResult;
 import org.jboss.pnc.spi.repour.RepourResult;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -58,11 +63,19 @@ public class DatastoreAdapterTest {
     private static final String REPOSITORY_MANAGER_LOG = "Repository manager log.";
     private static final String BUILD_LOG = "Build Driver log.";;
 
+    private SystemConfig systemConfig;
+
+    @Before
+    void before() {
+        systemConfig = Mockito.mock(SystemConfig.class);
+        when(systemConfig.getTemporalBuildExpireDate()).thenReturn(Date.from(Instant.now().plus(14, ChronoUnit.DAYS)));
+    }
+
     @Test
     public void shouldStoreRepositoryManagerSuccessResult() throws DatastoreException {
         //given
         DatastoreMock datastore = new DatastoreMock();
-        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore);
+        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore, systemConfig);
 
         BuildStatus buildStatus = BuildStatus.SUCCESS;
         CompletionStatus completionStatus = CompletionStatus.SUCCESS;
@@ -84,7 +97,7 @@ public class DatastoreAdapterTest {
     public void shouldStoreRepositoryManagerError() throws DatastoreException {
         //given
         DatastoreMock datastore = new DatastoreMock();
-        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore);
+        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore, systemConfig);
 
         BuildStatus buildStatus = BuildStatus.SUCCESS;
         CompletionStatus completionStatus = CompletionStatus.FAILED;
@@ -106,7 +119,7 @@ public class DatastoreAdapterTest {
     public void shouldStoreRepourResult() throws DatastoreException {
         //given
         DatastoreMock datastore = new DatastoreMock();
-        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore);
+        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore, systemConfig);
 
         RepourResult repourResult = RepourResultMock.mock();
 

@@ -23,6 +23,7 @@ import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.ProductMilestone;
 import org.jboss.pnc.model.User;
+import org.jboss.pnc.model.utils.ContentIdentityManager;
 import org.jboss.pnc.spi.BuildCoordinationStatus;
 import org.jboss.pnc.spi.BuildOptions;
 import org.slf4j.Logger;
@@ -48,6 +49,9 @@ public class BuildTask {
 
     private final User user;
     private final Date submitTime;
+
+    private final String contentId;
+
     private Date startTime;
     private Date endTime;
 
@@ -93,6 +97,8 @@ public class BuildTask {
         this.buildSetTask = buildSetTask;
         this.buildConfigSetRecordId = buildConfigSetRecordId;
         this.productMilestone = productMilestone;
+        this.contentId = ContentIdentityManager.getBuildContentId(buildConfiguration.getName());
+
     }
 
     public void setStatus(BuildCoordinationStatus status) {
@@ -276,4 +282,7 @@ public class BuildTask {
         return buildConfigSetRecordId;
     }
 
+    public String getContentId() {
+        return contentId;
+    }
 }

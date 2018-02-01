@@ -85,11 +85,6 @@ public class DefaultBuildExecutionSession implements BuildExecutionSession {
     }
 
     @Override
-    public void getEventLog() {
-
-    }
-
-    @Override
     public BuildExecutionConfiguration getBuildExecutionConfiguration() {
         return buildExecutionConfiguration;
     }
@@ -134,7 +129,6 @@ public class DefaultBuildExecutionSession implements BuildExecutionSession {
         if (debugData != null && debugData.isDebugEnabled()) {
             environmentDriverResult = new EnvironmentDriverResult(
                     CompletionStatus.SUCCESS,
-                    "",
                     Optional.of(debugData.getSshCredentials()));
         }
 
@@ -273,4 +267,5 @@ public class DefaultBuildExecutionSession implements BuildExecutionSession {
     public String getAccessToken() {
         return accessToken;
     }
+
 }
