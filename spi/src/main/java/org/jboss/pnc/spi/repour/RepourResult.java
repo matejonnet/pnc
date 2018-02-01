@@ -40,9 +40,6 @@ public class RepourResult implements Serializable {
     private final CompletionStatus completionStatus;
 
     @Getter
-    private final String log;
-
-    @Getter
     private final String executionRootName;
 
     @Getter

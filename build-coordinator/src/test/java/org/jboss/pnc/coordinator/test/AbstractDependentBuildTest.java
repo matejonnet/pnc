@@ -63,8 +63,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.event.Event;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -117,6 +119,7 @@ public abstract class AbstractDependentBuildTest {
         SystemConfig systemConfig = mock(SystemConfig.class);
         when(systemConfig.getCoordinatorThreadPoolSize()).thenReturn(1);
         when(systemConfig.getCoordinatorMaxConcurrentBuilds()).thenReturn(1);
+        when(systemConfig.getTemporalBuildExpireDate()).thenReturn(Date.from(Instant.now().plus(14, ChronoUnit.DAYS)));
         when(config.getModuleConfig(any())).thenReturn(systemConfig);
 
         buildQueue = new BuildQueue(config);
@@ -139,7 +142,7 @@ public abstract class AbstractDependentBuildTest {
                 new SequenceHandlerRepositoryMock(),
                 targetRepositoryRepository
         );
-        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore);
+        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore, systemConfig);
 
         if (buildSchedulerFactory == null) {
             buildSchedulerFactory = new MockBuildSchedulerFactory();
@@ -148,7 +151,7 @@ public abstract class AbstractDependentBuildTest {
         coordinator = new DefaultBuildCoordinator(datastoreAdapter, mock(Event.class), mock(Event.class),
                 buildSchedulerFactory,
                 buildQueue,
-                config);
+                systemConfig);
         buildQueue.initSemaphore();
         coordinator.start();
     }

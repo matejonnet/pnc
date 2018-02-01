@@ -18,7 +18,10 @@
 package org.jboss.pnc.coordinator.builder.datastore;
 
 import org.jboss.logging.Logger;
+import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.coordinator.BuildCoordinationException;
+import org.jboss.pnc.logging.OperationLogger;
+import org.jboss.pnc.logging.OperationLoggerFactory;
 import org.jboss.pnc.model.Artifact;
 import org.jboss.pnc.model.BuildConfigSetRecord;
 import org.jboss.pnc.model.BuildConfiguration;
@@ -41,8 +44,6 @@ import org.jboss.pnc.spi.repour.RepourResult;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
@@ -66,14 +67,19 @@ public class DatastoreAdapter {
 
     private static final Logger log = Logger.getLogger(DatastoreAdapter.class);
 
+    private final OperationLogger buildResultOperationLogger = OperationLoggerFactory.getLogger("build-result");
+
+    private SystemConfig systemConfig;
+
     // needed for EJB/CDI
     @Deprecated
     public DatastoreAdapter() {
     }
 
     @Inject
-    public DatastoreAdapter(Datastore datastore) {
+    public DatastoreAdapter(Datastore datastore, SystemConfig systemConfig) {
         this.datastore = datastore;
+        this.systemConfig = systemConfig;
     }
 
     public BuildConfigSetRecord saveBuildConfigSetRecord(BuildConfigSetRecord buildConfigSetRecord) throws DatastoreException {
@@ -109,16 +115,14 @@ public class DatastoreAdapter {
 
             if (buildResult.getRepourResult().isPresent()) {
                 RepourResult repourResult = buildResult.getRepourResult().get();
-                buildRecordBuilder.repourLog(repourResult.getLog());
                 buildRecordBuilder.executionRootName(repourResult.getExecutionRootName());
                 buildRecordBuilder.executionRootVersion(repourResult.getExecutionRootVersion());
             } else {
-                log.warn("[BuildTask:" + buildTask.getId() + "] Missing RepourResult.");
+                buildResultOperationLogger.warn(buildTask.getContentId(), getLogExpires(buildTask), "Missing Repour Result!");
             }
 
             if (buildResult.getBuildDriverResult().isPresent()) {
                 BuildDriverResult buildDriverResult = buildResult.getBuildDriverResult().get();
-                buildRecordBuilder.appendLog(buildDriverResult.getBuildLog());
                 buildRecordStatus = buildDriverResult.getBuildStatus(); //TODO buildRecord should use CompletionStatus
             } else if (!buildResult.hasFailed()) {
                 storeResult(buildTask, Optional.of(buildResult), new BuildCoordinationException("Trying to store success build with incomplete result. Missing BuildDriverResult."));
@@ -127,8 +131,6 @@ public class DatastoreAdapter {
 
             if (buildResult.getEnvironmentDriverResult().isPresent()) {
                 EnvironmentDriverResult environmentDriverResult = buildResult.getEnvironmentDriverResult().get();
-                buildRecordBuilder.appendLog(environmentDriverResult.getLog());
-
                 environmentDriverResult.getSshCredentials().ifPresent(c -> {
                     buildRecordBuilder.sshCommand(c.getCommand());
                     buildRecordBuilder.sshPassword(c.getPassword());
@@ -138,7 +140,6 @@ public class DatastoreAdapter {
             if (buildResult.getRepositoryManagerResult().isPresent()) {
                 RepositoryManagerResult repositoryManagerResult = buildResult.getRepositoryManagerResult().get();
 
-                buildRecordBuilder.appendLog(repositoryManagerResult.getLog());
                 if (repositoryManagerResult.getCompletionStatus().isFailed()) {
                     buildRecordStatus = FAILED; //TODO, do not mix statuses
                 }
@@ -169,7 +170,7 @@ public class DatastoreAdapter {
                     buildRecordStatus = CANCELLED;
                 } else if (buildResult.getCompletionStatus().equals(CompletionStatus.TIMED_OUT)) {
                     buildRecordStatus = SYSTEM_ERROR;
-                    buildRecordBuilder.appendLog("-- Operation TIMED-OUT --");
+                    buildResultOperationLogger.warn(buildTask.getContentId(), getLogExpires(buildTask), "Operation TIMED-OUT.");
                 }
             }
 
@@ -187,9 +188,14 @@ public class DatastoreAdapter {
 
             log.debugf("Storing results of buildTask [%s] to datastore.", buildTask.getId());
             datastore.storeCompletedBuild(buildRecordBuilder);
+            buildResultOperationLogger.info(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), "Successfully completed.");
         } catch (Exception e) {
             storeResult(buildTask, Optional.of(buildResult), e);
         }
+    }
+
+    private Date getLogExpires(BuildTask buildTask) {
+        return buildTask.getBuildOptions().isTemporaryBuild() ? systemConfig.getTemporalBuildExpireDate() : null;
     }
 
     /**
@@ -207,41 +213,16 @@ public class DatastoreAdapter {
         StringBuilder errorLog = new StringBuilder();
 
         buildResult.ifPresent(result -> {
-
             result.getRepourResult().ifPresent(repourResult -> {
                 buildRecordBuilder.executionRootName(repourResult.getExecutionRootName());
                 buildRecordBuilder.executionRootVersion(repourResult.getExecutionRootVersion());
-                buildRecordBuilder.repourLog(repourResult.getLog());
-            });
-
-            result.getBuildDriverResult().ifPresent(
-                buildDriverResult -> {
-                    errorLog.append(buildDriverResult.getBuildLog());
-                    errorLog.append("\n---- End Build Log ----\n");
-            });
-
-            result.getRepositoryManagerResult().ifPresent(
-                rmr -> {
-                    errorLog.append(rmr.getLog());
-                    errorLog.append("\n---- End Repository Manager Log ----\n");
-            });
-
-            result.getEnvironmentDriverResult().ifPresent(
-                r -> {
-                    if (r.getLog() != null && !r.getLog().equals(""))
-                    errorLog.append(r.getLog());
-                    errorLog.append("\n---- End Environment Driver Log ----\n");
             });
         });
 
-        errorLog.append("Build status: ").append(getBuildStatus(buildResult)).append("\n");
-        errorLog.append("Caught exception: ").append(e.toString()).append("\n");
-        StringWriter stackTraceWriter = new StringWriter();
-        e.printStackTrace(new PrintWriter(stackTraceWriter));
-        errorLog.append(stackTraceWriter.getBuffer());
-        buildRecordBuilder.buildLog(errorLog.toString());
+        buildResultOperationLogger.error(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), "Build status: {}", getBuildStatus(buildResult));
+        buildResultOperationLogger.error(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), "Caught exception: ", e);
 
-        log.debugf("Storing ERROR result of %s to datastore. Error: %s", buildTask.getBuildConfigurationAudited().getName() + "\n\n\n Exception: " + errorLog, e);
+        log.debug("Storing ERROR result of buildTask.getBuildConfigurationAudited().getName() to datastore.",  e);
         datastore.storeCompletedBuild(buildRecordBuilder);
     }
 
@@ -256,7 +237,9 @@ public class DatastoreAdapter {
     public void storeRejected(BuildTask buildTask) throws DatastoreException {
         BuildRecord.Builder buildRecordBuilder = initBuildRecordBuilder(buildTask);
         buildRecordBuilder.status(REJECTED);
-        buildRecordBuilder.buildLog(buildTask.getStatusDescription());
+
+        //buildRecordBuilder.buildLog(buildTask.getStatusDescription()); //TODO switch to old school ?
+        buildResultOperationLogger.warn(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), buildTask.getStatusDescription());
 
         log.debugf("Storing REJECTED build of %s to datastore. Reason: %s", buildTask.getBuildConfigurationAudited().getName(), buildTask.getStatusDescription());
         datastore.storeCompletedBuild(buildRecordBuilder);

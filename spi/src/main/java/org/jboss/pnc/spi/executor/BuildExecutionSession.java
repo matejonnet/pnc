@@ -38,8 +38,6 @@ public interface BuildExecutionSession {
 
     void setLiveLogsUri(Optional<URI> liveLogsUri);
 
-    void getEventLog();
-
     BuildExecutionConfiguration getBuildExecutionConfiguration();
 
     BuildExecutionStatus getStatus();

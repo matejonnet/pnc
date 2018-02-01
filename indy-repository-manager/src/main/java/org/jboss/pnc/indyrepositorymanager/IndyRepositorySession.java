@@ -37,6 +37,8 @@ import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
 import org.commonjava.maven.atlas.ident.util.ArtifactPathInfo;
 import org.jboss.pnc.common.json.moduleconfig.MavenRepoDriverModuleConfig.IgnoredPathSuffixes;
 import org.jboss.pnc.common.json.moduleconfig.MavenRepoDriverModuleConfig.InternalRepoPatterns;
+import org.jboss.pnc.logging.OperationLogger;
+import org.jboss.pnc.logging.OperationLoggerFactory;
 import org.jboss.pnc.model.Artifact;
 import org.jboss.pnc.model.TargetRepository;
 import org.jboss.pnc.spi.coordinator.CompletionStatus;
@@ -85,6 +87,8 @@ public class IndyRepositorySession implements RepositorySession {
 
     private boolean isTempBuild;
 
+    private Date temporalBuildExpireDate;
+
     private Indy indy;
     private final String buildContentId;
     private final String packageKey;
@@ -99,9 +103,17 @@ public class IndyRepositorySession implements RepositorySession {
 
     private String buildPromotionGroup;
 
-    public IndyRepositorySession(Indy indy, String buildContentId, String packageKey,
-            IndyRepositoryConnectionInfo info, InternalRepoPatterns internalRepoPatterns,
-            IgnoredPathSuffixes ignoredPathSuffixes, String buildPromotionGroup, boolean isTempBuild) {
+    private final OperationLogger operationLogger = OperationLoggerFactory.getLogger("build-executor");
+
+    public IndyRepositorySession(Indy indy,
+            String buildContentId,
+            String packageKey,
+            IndyRepositoryConnectionInfo info,
+            InternalRepoPatterns internalRepoPatterns,
+            IgnoredPathSuffixes ignoredPathSuffixes,
+            String buildPromotionGroup,
+            boolean isTempBuild,
+            Date temporalBuildExpireDate) {
         this.indy = indy;
         this.buildContentId = buildContentId;
         this.packageKey = packageKey;
@@ -110,6 +122,7 @@ public class IndyRepositorySession implements RepositorySession {
         this.connectionInfo = info;
         this.buildPromotionGroup = buildPromotionGroup;
         this.isTempBuild = isTempBuild; //TODO define based on buildPromotionGroup
+        this.temporalBuildExpireDate = temporalBuildExpireDate;
     }
 
     @Override
@@ -182,10 +195,12 @@ public class IndyRepositorySession implements RepositorySession {
         } catch (RepositoryManagerException rme) {
             status = CompletionStatus.FAILED;
             log = rme.getMessage();
-            logger.error("Promotion validation error(s): \n" + log);
+
+            Date expires = isTempBuild ? temporalBuildExpireDate : null;
+            operationLogger.error(buildContentId, expires, "Artifact promotion failed. Promotion validation error(s): {}", log);
         }
 
-        return new IndyRepositoryManagerResult(uploads, downloads, buildContentId, log, status);
+        return new IndyRepositoryManagerResult(uploads, downloads, buildContentId, status);
     }
 
     /**

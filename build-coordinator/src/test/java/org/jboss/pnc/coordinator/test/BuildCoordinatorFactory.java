@@ -30,13 +30,18 @@ import org.jboss.pnc.mock.datastore.DatastoreMock;
 import org.jboss.pnc.spi.coordinator.BuildCoordinator;
 import org.jboss.pnc.spi.events.BuildCoordinationStatusChangedEvent;
 import org.jboss.pnc.spi.events.BuildSetStatusChangedEvent;
+import org.mockito.Mockito;
 
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
@@ -52,13 +57,21 @@ public class BuildCoordinatorFactory {
     @Inject
     BuildSchedulerFactory buildSchedulerFactory;
 
+    private SystemConfig systemConfig;
+
+    BuildCoordinatorFactory() {
+        systemConfig = Mockito.mock(SystemConfig.class);
+        when(systemConfig.getTemporalBuildExpireDate()).thenReturn(Date.from(Instant.now().plus(14, ChronoUnit.DAYS)));
+    }
+
     public BuildCoordinatorBeans createBuildCoordinator(DatastoreMock datastore) {
-        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore);
+
+        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore, systemConfig);
 
         Configuration configuration = createConfiguration();
         BuildQueue queue = new BuildQueue(configuration);
         BuildCoordinator coordinator = new DefaultBuildCoordinator(datastoreAdapter, buildStatusChangedEventNotifier, buildSetStatusChangedEventNotifier,
-                buildSchedulerFactory, queue, configuration);
+                buildSchedulerFactory, queue, createSystemConfig());
         coordinator.start();
         queue.initSemaphore();
         return new BuildCoordinatorBeans(queue, coordinator);
@@ -67,22 +80,26 @@ public class BuildCoordinatorFactory {
     private Configuration createConfiguration() {
         try {
             Configuration configuration = mock(Configuration.class);
-            doReturn(new SystemConfig(
-                    "ProperDriver",
-                    "local-build-scheduler",
-                    "NO_AUTH",
-                    "10",
-                    "10",
-                    "10",
-                    "${product_short_name}-${product_version}-pnc",
-                    "10",
-                    null,
-                    "")
+            doReturn(createSystemConfig()
                 ).when(configuration)
                 .getModuleConfig(any(PncConfigProvider.class));
             return configuration;
         } catch (ConfigurationParseException e) {
             throw new IllegalStateException("Unexpected exception while creating configuration mock", e);
         }
+    }
+
+    private SystemConfig createSystemConfig() {
+        return new SystemConfig(
+                "ProperDriver",
+                "local-build-scheduler",
+                "NO_AUTH",
+                "10",
+                "10",
+                "10",
+                "${product_short_name}-${product_version}-pnc",
+                "10",
+                null,
+                "");
     }
 }

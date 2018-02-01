@@ -22,6 +22,10 @@ import org.jboss.pnc.common.json.AbstractModuleConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+
 public class SystemConfig extends AbstractModuleConfig {
 
     private final static Logger log = LoggerFactory.getLogger(SystemConfig.class);
@@ -122,6 +126,13 @@ public class SystemConfig extends AbstractModuleConfig {
 
     public int getTemporaryBuildsLifeSpan() {
         return temporaryBuildsLifeSpan;
+    }
+
+    /**
+     * @return expiration date. Date is calculated now + temporaryBuildsLifeSpan days.
+     */
+    public Date getTemporalBuildExpireDate() {
+        return Date.from(Instant.now().plus(temporaryBuildsLifeSpan, ChronoUnit.DAYS));
     }
 
     public KeycloakClientConfig getKeycloakServiceAccountConfig() {

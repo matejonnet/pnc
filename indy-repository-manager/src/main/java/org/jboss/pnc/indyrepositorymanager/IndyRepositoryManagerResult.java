@@ -29,7 +29,6 @@ import java.util.List;
 public class IndyRepositoryManagerResult implements RepositoryManagerResult {
 
     private final CompletionStatus completionStatus;
-    private final String log;
 
     private final List<Artifact> builtArtifacts;
     private final List<Artifact> dependencies;
@@ -45,19 +44,16 @@ public class IndyRepositoryManagerResult implements RepositoryManagerResult {
         this.dependencies = dependencies;
         this.buildContentId = buildContentId;
         this.completionStatus = CompletionStatus.SUCCESS;
-        this.log = "";
     }
 
     public IndyRepositoryManagerResult(
             List<Artifact> builtArtifacts,
             List<Artifact> dependencies,
             String buildContentId,
-            String log,
             CompletionStatus completionStatus) {
         this.builtArtifacts = builtArtifacts;
         this.dependencies = dependencies;
         this.buildContentId = buildContentId;
-        this.log = log;
         this.completionStatus = completionStatus;
     }
 
@@ -74,11 +70,6 @@ public class IndyRepositoryManagerResult implements RepositoryManagerResult {
     @Override
     public String getBuildContentId() {
         return buildContentId;
-    }
-
-    @Override
-    public String getLog() {
-        return log;
     }
 
     @Override

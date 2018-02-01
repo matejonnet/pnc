@@ -19,13 +19,9 @@ package org.jboss.pnc.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
-import org.jboss.pnc.common.security.Md5;
-import org.jboss.pnc.common.security.Sha256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -38,20 +34,17 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import javax.persistence.PersistenceException;
 import javax.persistence.PreRemove;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -158,27 +151,6 @@ public class BuildRecord implements GenericEntity<Integer> {
     @Size(max=255)
     @Column(updatable = false)
     private String scmRevision;
-
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(updatable = false)
-    private String buildLog;
-
-    @Getter
-    @Setter(onMethod=@__({@Deprecated})) //for internal use only
-    @Column(updatable = false)
-    private String buildLogMd5;
-
-    @Getter
-    @Setter(onMethod=@__({@Deprecated})) //for internal use only
-    @Column(updatable = false)
-    private String buildLogSha256;
-
-    @Getter
-    @Setter(onMethod=@__({@Deprecated})) //for internal use only
-    @Column(updatable = false)
-    private Integer buildLogSize;
 
     @Enumerated(EnumType.STRING)
     @Column(updatable = false)
@@ -305,27 +277,6 @@ public class BuildRecord implements GenericEntity<Integer> {
     @Column(name="value")
     private Map<String, String> attributes = new HashMap<>();
 
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
-    @Basic(fetch = FetchType.LAZY)
-    @Column(updatable = false)
-    private String repourLog;
-
-    @Getter
-    @Setter(onMethod=@__({@Deprecated})) //for internal use only
-    @Column(updatable = false)
-    private String repourLogMd5;
-
-    @Getter
-    @Setter(onMethod=@__({@Deprecated})) //for internal use only
-    @Column(updatable = false)
-    private String repourLogSha256;
-
-    @Getter
-    @Setter(onMethod=@__({@Deprecated})) //for internal use only
-    @Column(updatable = false)
-    private Integer repourLogSize;
-
     @OneToMany(mappedBy = "buildRecord")
     @Getter
     @Setter
@@ -441,39 +392,24 @@ public class BuildRecord implements GenericEntity<Integer> {
         this.scmRevision = scmRevision;
     }
 
-    public String getRepourLog() {
-        return repourLog;
-    }
+    @Getter
+    private String repourLogSha256; //TODO store me
 
-    /**
-     *
-     * @deprecated use builder instead
-     */
-    @Deprecated
-    public void setRepourLog(String repourLog) {
-        this.repourLog = repourLog;
-    }
+    @Getter
+    private Integer repourLogSize;
 
-    /**
-     * Gets the builds the log.
-     *
-     * @return the builds the log
-     */
-    public String getBuildLog() {
-        return buildLog;
-    }
+    @Getter
+    private String buildLogSha256;
 
-    /**
-     * Sets the builds the log.
-     *
-     * @param buildLog the new builds the log
-     *
-     * @deprecated use builder instead
-     */
-    @Deprecated
-    public void setBuildLog(String buildLog) {
-        this.buildLog = buildLog;
-    }
+    @Getter
+    private Integer buildLogSize;
+
+    @Getter
+    private String processLogSha256;
+
+    @Getter
+    private Integer processLogSize;
+
 
     /**
      * Gets the status.
@@ -697,10 +633,6 @@ public class BuildRecord implements GenericEntity<Integer> {
 
         private String scmRevision;
 
-        private String repourLog = "";
-
-        private String buildLog = "";
-
         private BuildStatus status;
 
         private Set<Artifact> builtArtifacts;
@@ -753,27 +685,10 @@ public class BuildRecord implements GenericEntity<Integer> {
             buildRecord.setBuildConfigurationId(buildConfigurationAuditedId);
             buildRecord.setBuildConfigurationRev(buildConfigurationAuditedRev);
 
-            buildRecord.setRepourLog(repourLog);
-            buildRecord.setRepourLogSize(repourLog.length());
-            buildRecord.setBuildLog(buildLog);
-            buildRecord.setBuildLogSize(buildLog.length());
-
             if (temporaryBuild == null) {
                 temporaryBuild = true;
             }
             buildRecord.setTemporaryBuild(temporaryBuild);
-
-            try {
-                buildRecord.setBuildLogMd5(Md5.digest(buildLog));
-                buildRecord.setBuildLogSha256(Sha256.digest(buildLog));
-
-                buildRecord.setRepourLogMd5(Md5.digest(repourLog));
-                buildRecord.setRepourLogSha256(Sha256.digest(repourLog));
-
-            } catch (NoSuchAlgorithmException | IOException e) {
-                logger.error("Cannot compute log checksum.", e);
-                throw new RuntimeException("Cannot compute log checksum.", e);
-            }
 
             if (buildConfigurationAudited != null) {
                 setBuildConfigurationAuditedIfValid(buildRecord,
@@ -849,16 +764,6 @@ public class BuildRecord implements GenericEntity<Integer> {
 
         public Builder scmRevision(String scmRevision) {
             this.scmRevision = scmRevision;
-            return this;
-        }
-
-        public Builder buildLog(String buildLog) {
-            this.buildLog = buildLog;
-            return this;
-        }
-
-        public Builder appendLog(String buildLog) {
-            this.buildLog += buildLog;
             return this;
         }
 
@@ -943,10 +848,5 @@ public class BuildRecord implements GenericEntity<Integer> {
             return this;
         }
 
-        public BuildRecord.Builder repourLog(String log) {
-            this.repourLog = log;
-            return this;
-        }
     }
-
 }

@@ -172,7 +172,8 @@ public class BuildTasksInitializer {
                         user,
                         buildTaskIdProvider.get(),
                         buildSetTask,
-                        buildSetTask.getStartTime(), productMilestone);
+                        buildSetTask.getStartTime(),
+                        productMilestone);
                 log.debug("Created new buildTask {} for BuildConfigurationAudited {}.", buildTask, buildConfigAudited);
             }
 

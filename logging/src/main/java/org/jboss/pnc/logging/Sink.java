@@ -15,17 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.spi.builddriver;
+package org.jboss.pnc.logging;
 
-import org.jboss.pnc.model.BuildStatus;
-
-import java.io.Serializable;
+import java.io.Closeable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 /**
- * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2014-12-18.
+ * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public interface BuildDriverResult extends Serializable {
+public interface Sink extends Closeable {
 
-    BuildStatus getBuildStatus();
+    /**
+     * Async send.
+     */
+    void send(String message, Consumer<Exception> exceptionHandler);
 
+    /**
+     * Blocking send.
+     */
+    void send(String message, long timeoutMillis) throws TimeoutException, ExecutionException, InterruptedException;
 }

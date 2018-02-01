@@ -42,6 +42,7 @@ import org.jboss.pnc.common.json.ConfigurationParseException;
 import org.jboss.pnc.common.json.moduleconfig.MavenRepoDriverModuleConfig;
 import org.jboss.pnc.common.json.moduleconfig.MavenRepoDriverModuleConfig.IgnoredPathSuffixes;
 import org.jboss.pnc.common.json.moduleconfig.MavenRepoDriverModuleConfig.InternalRepoPatterns;
+import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.common.json.moduleprovider.PncConfigProvider;
 import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.model.TargetRepository;
@@ -58,12 +59,9 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.commonjava.indy.pkg.maven.model.MavenPackageTypeDescriptor.MAVEN_PKG_KEY;
 import static org.commonjava.indy.pkg.npm.model.NPMPackageTypeDescriptor.NPM_PKG_KEY;
@@ -99,6 +97,8 @@ public class RepositoryManagerDriver implements RepositoryManager {
 
     private IgnoredPathSuffixes ignoredPathSuffixes;
 
+    private SystemConfig systemConfig;
+
     @Deprecated
     public RepositoryManagerDriver() { // workaround for CDI constructor parameter injection bug
         this.DEFAULT_REQUEST_TIMEOUT = 0;
@@ -112,6 +112,8 @@ public class RepositoryManagerDriver implements RepositoryManager {
         try {
             config = configuration
                     .getModuleConfig(new PncConfigProvider<>(MavenRepoDriverModuleConfig.class));
+            systemConfig = configuration
+                    .getModuleConfig(new PncConfigProvider<>(SystemConfig.class));
         } catch (ConfigurationParseException e) {
             throw new IllegalStateException("Cannot read configuration for " + DRIVER_ID + ".", e);
         }
@@ -233,8 +235,16 @@ public class RepositoryManagerDriver implements RepositoryManager {
 
         boolean tempBuild = buildExecution.isTempBuild();
         String buildPromotionGroup = tempBuild ? TEMP_BUILD_PROMOTION_GROUP : BUILD_PROMOTION_GROUP;
-        return new IndyRepositorySession(indy, buildId, pakageType, new IndyRepositoryConnectionInfo(url, deployUrl),
-                internalRepoPatterns, ignoredPathSuffixes, buildPromotionGroup, tempBuild);
+        return new IndyRepositorySession(
+                indy,
+                buildId,
+                pakageType,
+                new IndyRepositoryConnectionInfo(url, deployUrl),
+                internalRepoPatterns,
+                ignoredPathSuffixes,
+                buildPromotionGroup,
+                tempBuild,
+                systemConfig.getTemporalBuildExpireDate());
     }
 
     private String getIndyPackageTypeKey(TargetRepository.Type repoType) {
