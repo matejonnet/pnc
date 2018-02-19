@@ -21,6 +21,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +65,9 @@ public class BuildConfigurationAudited {
     private String description;
 
     private Project project;
+
+    @Enumerated(EnumType.STRING)
+    private BuildType buildType;
 
     private BuildEnvironment buildEnvironment;
 
@@ -126,6 +131,7 @@ public class BuildConfigurationAudited {
             configurationAudited.setIdRev(new IdRev(buildConfiguration.getId(), rev));
             configurationAudited.setBuildScript(buildConfiguration.getBuildScript());
             configurationAudited.setDescription(buildConfiguration.getDescription());
+            configurationAudited.setBuildType(buildConfiguration.getBuildType());
             configurationAudited.setBuildEnvironment(buildConfiguration.getBuildEnvironment());
             configurationAudited.setName(buildConfiguration.getName());
             configurationAudited.setDescription(buildConfiguration.getDescription());

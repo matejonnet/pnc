@@ -29,17 +29,21 @@ import org.jboss.pnc.causewayclient.remotespi.Dependency;
 import org.jboss.pnc.causewayclient.remotespi.Logfile;
 import org.jboss.pnc.causewayclient.remotespi.MavenBuild;
 import org.jboss.pnc.causewayclient.remotespi.MavenBuiltArtifact;
+import org.jboss.pnc.causewayclient.remotespi.NpmBuild;
 import org.jboss.pnc.common.maven.Gav;
 import org.jboss.pnc.model.Artifact;
+import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.BuildEnvironment;
 import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.model.BuildRecordPushResult;
+import org.jboss.pnc.model.BuildType;
 import org.jboss.pnc.rest.restmodel.BuildRecordPushResultRest;
 import org.jboss.pnc.spi.coordinator.ProcessException;
 import org.jboss.pnc.spi.datastore.predicates.ArtifactPredicates;
 import org.jboss.pnc.spi.datastore.repositories.ArtifactRepository;
 import org.jboss.pnc.spi.datastore.repositories.BuildRecordPushResultRepository;
 import org.jboss.pnc.spi.datastore.repositories.BuildRecordRepository;
+import org.jboss.pnc.spi.exception.ProcessManagerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +147,13 @@ public class BuildResultPushManager {
             return false;
         }
 
-        BuildImportRequest buildImportRequest = createCausewayPushRequest(buildRecord, tagPrefix, callBackUrl, authToken);
+        BuildImportRequest buildImportRequest = null;
+        try {
+            buildImportRequest = createCausewayPushRequest(buildRecord, tagPrefix, callBackUrl, authToken);
+        } catch (ProcessManagerException e) {
+            logger.error("Cannot create push request.", e);
+            return false;
+        }
         boolean successfullyPushed = causewayClient.importBuild(buildImportRequest, authToken);
         if (!successfullyPushed) {
             inProgress.remove(buildRecordId);
@@ -155,8 +165,9 @@ public class BuildResultPushManager {
             BuildRecord buildRecord,
             String tagPrefix,
             String callBackUrl,
-            String authToken) {
-        BuildEnvironment buildEnvironment = buildRecord.getBuildConfigurationAudited().getBuildEnvironment();
+            String authToken) throws ProcessManagerException {
+        BuildConfigurationAudited buildConfigurationAudited = buildRecord.getBuildConfigurationAudited();
+        BuildEnvironment buildEnvironment = buildConfigurationAudited.getBuildEnvironment();
         logger.debug("BuildRecord: {}", buildRecord.getId());
         logger.debug("BuildEnvironment: {}", buildEnvironment);
 
@@ -177,32 +188,63 @@ public class BuildResultPushManager {
         Set<BuiltArtifact> builtArtifacts = collectBuiltArtifacts(builtArtifactEntities);
 
         CallbackTarget callbackTarget = CallbackTarget.callbackPost(callBackUrl, authToken);
-        ProjectVersionRef projectVersionRef = buildRootToGAV(
-                buildRecord.getExecutionRootName(),
-                buildRecord.getExecutionRootVersion());
         Set<Logfile> logs = new HashSet<>();
 
         addLogs(buildRecord, logs);
 
-        Build build = new MavenBuild(
-                projectVersionRef.getGroupId(),
-                projectVersionRef.getArtifactId(),
-                projectVersionRef.getVersionString(),
-                buildRecord.getExecutionRootName(),
-                buildRecord.getExecutionRootVersion(),
-                "PNC",
-                buildRecord.getId(),
-                String.format(PNC_BUILD_RECORD_PATH, buildRecord.getId()),
-                buildRecord.getStartTime(),
-                buildRecord.getEndTime(),
-                buildRecord.getScmRepoURL(),
-                buildRecord.getScmRevision(),
-                buildRoot,
-                logs,
-                dependencies,
-                builtArtifacts,
-                tagPrefix
-        );
+        BuildType buildType = buildConfigurationAudited.getBuildType();
+
+        Build build;
+        if (BuildType.MVN.equals(buildType)) {
+            ProjectVersionRef projectVersionRef = buildRootToGAV(
+                    buildRecord.getExecutionRootName(),
+                    buildRecord.getExecutionRootVersion());
+
+            build = new MavenBuild(
+                    projectVersionRef.getGroupId(),
+                    projectVersionRef.getArtifactId(),
+                    projectVersionRef.getVersionString(),
+                    buildRecord.getExecutionRootName(),
+                    buildRecord.getExecutionRootVersion(),
+                    "PNC",
+                    buildRecord.getId(),
+                    String.format(PNC_BUILD_RECORD_PATH, buildRecord.getId()),
+                    buildRecord.getStartTime(),
+                    buildRecord.getEndTime(),
+                    buildRecord.getScmRepoURL(),
+                    buildRecord.getScmRevision(),
+                    buildRoot,
+                    logs,
+                    dependencies,
+                    builtArtifacts,
+                    tagPrefix
+            );
+        } else if (BuildType.NPM.equals(buildType)) {
+            NameVersion nameVersion = buildRootToNameVersion(
+                    buildRecord.getExecutionRootName(),
+                    buildRecord.getExecutionRootVersion());
+
+            build = new NpmBuild(
+                    nameVersion.getName(),
+                    nameVersion.getVersion(),
+                    buildRecord.getExecutionRootName(),
+                    buildRecord.getExecutionRootVersion(),
+                    "PNC",
+                    buildRecord.getId(),
+                    String.format(PNC_BUILD_RECORD_PATH, buildRecord.getId()),
+                    buildRecord.getStartTime(),
+                    buildRecord.getEndTime(),
+                    buildRecord.getScmRepoURL(),
+                    buildRecord.getScmRevision(),
+                    buildRoot,
+                    logs,
+                    dependencies,
+                    builtArtifacts,
+                    tagPrefix
+            );
+        } else {
+            throw new ProcessManagerException("Unsuported build type for Causeway push. Type: " + buildType);
+        }
 
         return new BuildImportRequest(callbackTarget, build);
     }
