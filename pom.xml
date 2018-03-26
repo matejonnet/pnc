@@ -71,6 +71,7 @@
     <module>common</module>
     <module>moduleconfig</module>
     <module>auth</module>
+    <module>dag-scheduler</module>
     <module>datastore</module>
     <module>messaging-spi</module>
     <module>messaging</module>
@@ -250,6 +251,12 @@
       <dependency>
         <groupId>org.jboss.pnc</groupId>
         <artifactId>datastore</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss.pnc</groupId>
+        <artifactId>dag-scheduler</artifactId>
         <version>${project.version}</version>
       </dependency>
 
