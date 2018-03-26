@@ -17,21 +17,31 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-@Data
-public class CompletedTask<T extends Serializable> {
+public interface DynamicDagResolver<T extends Serializable> {
 
-    private final Task<T> task;
+    void submitTask(Task<T> task);
 
-    private final Status status;
+    void resolveTask(String id, CompletedTask.Status status);
 
-    public enum Status {
-        DONE, ERROR, FAILED_DEPENDENCY, ALREADY_SUBMITTED, FAILED, MISSING_DEPENENCY;
-    }
+    void resolveTask(Task task, CompletedTask.Status status);
+
+    int getCount();
+
+    void setOnReadyListener(Consumer<Task<T>> onTaskReady);
+
+    void setOnCompleteListener(Consumer<CompletedTask> onTaskCompleted);
+
+    void submitTasks(Collection<Task<T>> tasks);
+
+    //    void setOnTaskReady(Consumer<Task<T>> task);
+//
+//    void setOnTaskCompleted(Consumer<CompletedTask<T>> task);
+
 }

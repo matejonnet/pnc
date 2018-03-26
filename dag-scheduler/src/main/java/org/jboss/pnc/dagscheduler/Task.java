@@ -17,63 +17,64 @@
  */
 package org.jboss.pnc.dagscheduler;
 
+import lombok.Getter;
+
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
 public class Task<T extends Serializable> implements Serializable {
 
+    @Getter
     private final String id;
-    private final Set<Task<T>> dependencies = new CopyOnWriteArraySet<>();
-    private final Set<Task<T>> dependents = new CopyOnWriteArraySet<>();
 
+    private final Set<Task<T>> dependencies = new HashSet<>();
+
+    private final Set<Task<T>> dependents = new HashSet<>();
+
+    @Getter
     private final T data;
-
-    public static <T extends Serializable> Task create(String id, T data) {
-        return new Task(id, data);
-    }
-
-    public static <T extends Serializable> Task create(String id, T data, Task dependency) {
-        Task task = new Task(id, data, dependency);
-        dependency.addDependent(task);
-        return task;
-    }
 
     private Task(String id, T data) {
         this.id = id;
         this.data = data;
     }
 
-    private Task(String id, T data, Task dependency) {
-        this.id = id;
-        this.data = data;
-        dependencies.add(dependency);
+    public static <T extends Serializable> Task create(String id, T data) {
+        return create(id, data, Collections.EMPTY_SET);
     }
 
-    private void addDependent(Task node) {
-        dependents.add(node);
+    public static <T extends Serializable> Task create(String id, T data, Set<Task<T>> dependencies) {
+        Task<T> task = new Task(id, data);
+        for (Task<T> dependency : dependencies) {
+            task.addDependency(dependency);
+        }
+        return task;
     }
 
-    boolean removeDependency(Task task) {
+    boolean addDependent(Task node) {
+        return dependents.add(node);
+    }
+
+    public boolean addDependency(Task task) {
+        task.addDependent(this);
+        return dependencies.add(task);
+    }
+
+    public boolean removeDependency(Task task) {
         return dependencies.remove(task);
     }
 
-    Set<Task<T>> getDependencies() {
-        return dependencies;
+    public Set<Task<T>> getDependencies() { //TODO handle concurrent modification exception
+        return Collections.unmodifiableSet(dependencies);
     }
 
-    Set<Task<T>> getDependents() {
-        return dependents;
+    public Set<Task<T>> getDependents() {
+        return Collections.unmodifiableSet(dependents);
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public T getData() {
-        return data;
-    }
 }
