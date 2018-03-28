@@ -17,28 +17,19 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import lombok.Getter;
-
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public class Task<T extends Serializable> implements Serializable {
+public interface DependencyRegistry<T extends Serializable> {
 
-    @Getter
-    private final String id;
+    Set<Task<T>> getDependencies(Task<T> task);
 
-    @Getter
-    private final T data;
+    Set<Task<T>> getDependents(Task<T> task);
 
-    public Task(String id, T data) {
-        this.id = id;
-        this.data = data;
-    }
+    boolean addDependency(Task<T> parent, Task<T> child);
 
-    @Override
-    public String toString() {
-        return id;
-    }
+    boolean removeDependency(Task<T> parent, Task<T> child);
 }

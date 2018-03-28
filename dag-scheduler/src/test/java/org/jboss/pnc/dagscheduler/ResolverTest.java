@@ -17,7 +17,7 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import org.jboss.pnc.dagscheduler.local.DefaultDagRunner;
+import org.jboss.pnc.dagscheduler.local.DefaultDagResolver;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,10 +48,10 @@ public class ResolverTest {
 
     @Test
     public void shouldEmitAllWhenDependenciesAreResolved() throws Exception {
-        final DynamicDagResolver resolver = new DefaultDagRunner();
+        final DagResolver<String> resolver = new DefaultDagResolver();
 
         List<Task> ready = new ArrayList<>();
-        Consumer<Task> onTaskReady = task -> {
+        Consumer<Task<String>> onTaskReady = task -> {
             logger.info("Ready task: {}.", task.getId());
             ready.add(task);
             resolver.resolveTask(task.getId(), CompletedTask.Status.DONE);
@@ -64,16 +64,16 @@ public class ResolverTest {
         resolver.setOnReadyListener(onTaskReady);
         resolver.setOnCompleteListener(onTaskCompleted);
 
-        Task<String> a = Task.create("A", "data");
-        Task<String> b = Task.create("B", "data", new HashSet<>(Arrays.asList(a)));
-        Task<String> c = Task.create("C", "data", new HashSet<>(Arrays.asList(b)));
-        Task<String> d = Task.create("D", "data");
-        Task<String> e = Task.create("E", "data", new HashSet<>(Arrays.asList(b,d)));
+        Task<String> a = resolver.createTask("A", "data");
+        Task<String> b = resolver.createTask("B", "data", new HashSet<>(Arrays.asList(a)));
+        Task<String> c = resolver.createTask("C", "data", new HashSet<>(Arrays.asList(b)));
+        Task<String> d = resolver.createTask("D", "data");
+        Task<String> e = resolver.createTask("E", "data", new HashSet<>(Arrays.asList(b,d)));
 
-        Assert.assertEquals(2, b.getDependents().size());
-        Assert.assertEquals(1, b.getDependencies().size());
-        Assert.assertEquals(1, c.getDependencies().size());
-        Assert.assertEquals(2, e.getDependencies().size());
+        Assert.assertEquals(1, resolver.getDependents(a).size());
+        Assert.assertEquals(1, resolver.getDependencies(b).size());
+        Assert.assertEquals(1, resolver.getDependencies(c).size());
+        Assert.assertEquals(2, resolver.getDependencies(e).size());
 
         resolver.submitTasks(Arrays.asList(a, b, c, d, e));
         Assert.assertEquals(5, resolver.getCount());

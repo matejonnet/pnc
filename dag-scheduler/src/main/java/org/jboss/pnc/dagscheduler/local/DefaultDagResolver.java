@@ -18,8 +18,11 @@
 package org.jboss.pnc.dagscheduler.local;
 
 import org.jboss.pnc.dagscheduler.CompletedTask;
-import org.jboss.pnc.dagscheduler.DynamicDagResolver;
+import org.jboss.pnc.dagscheduler.DependencyRegistry;
+import org.jboss.pnc.dagscheduler.DagResolver;
 import org.jboss.pnc.dagscheduler.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -34,14 +37,17 @@ import java.util.function.Consumer;
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public class DefaultDagRunner<T extends Serializable> implements DynamicDagResolver<T> {
+public class DefaultDagResolver<T extends Serializable> implements DagResolver<T> {
+
+    private final Logger logger = LoggerFactory.getLogger(DefaultDagResolver.class);
 
     private final ConcurrentMap<String, Task<T>> tasks = new ConcurrentHashMap<>();
+    private final DependencyRegistry<T> dependencyRegistry = new DefaultDependencyRegistry();
 
     private Consumer<Task<T>> onTaskReady = (t) -> {};
     private Consumer<CompletedTask> onTaskCompleted = (t) -> {};
 
-    public DefaultDagRunner() {
+    public DefaultDagResolver() {
 
     }
 
@@ -76,13 +82,28 @@ public class DefaultDagRunner<T extends Serializable> implements DynamicDagResol
         }
     }
 
+    @Override
+    public Task<T> createTask(String id, T data) {
+        return createTask(id, data, Collections.EMPTY_SET);
+    }
+
+    @Override
+    public Task<T> createTask(String id, T data, Set<Task<T>> dependencies) {
+        Task<T> task = new Task(id, data);
+        for (Task<T> dependency : dependencies) {
+            dependencyRegistry.addDependency(task, dependency);
+        }
+        return task;
+    }
+
+
     private void wireDependencies(Task<T> task) {
-        for (Task dependency : task.getDependencies()) {
+        for (Task<T> dependency : dependencyRegistry.getDependencies(task)) {
             Task<T> submittedTask = tasks.get(dependency.getId());
             if (submittedTask == null) {
                 onTaskCompleted.accept(new CompletedTask(task, CompletedTask.Status.MISSING_DEPENENCY));
             } else {
-                task.addDependency(submittedTask);
+                dependencyRegistry.addDependency(task, submittedTask);
             }
         }
     }
@@ -95,6 +116,7 @@ public class DefaultDagRunner<T extends Serializable> implements DynamicDagResol
 
     @Override
     public void resolveTask(Task task, CompletedTask.Status status) {
+        logger.debug("Resolving task {} with status {}.", task, status);
         if (status.equals(CompletedTask.Status.DONE)) {
             success(task);
         } else if (status.equals(CompletedTask.Status.ERROR)) {
@@ -104,7 +126,17 @@ public class DefaultDagRunner<T extends Serializable> implements DynamicDagResol
 
     @Override
     public int getCount() {
-        return tasks.size(); //TODO can it throw concurrent modification exception ?
+        return tasks.size();
+    }
+
+    @Override
+    public Set<Task<T>> getDependencies(Task<T> task) {
+        return dependencyRegistry.getDependencies(task);
+    }
+
+    @Override
+    public Set<Task<T>> getDependents(Task<T> task) {
+        return dependencyRegistry.getDependents(task);
     }
 
     private void fail(Task<T> task) {
@@ -124,8 +156,8 @@ public class DefaultDagRunner<T extends Serializable> implements DynamicDagResol
         tasks.remove(task);
         onTaskCompleted.accept(new CompletedTask(task, CompletedTask.Status.DONE));
 
-        for (Task<T> dependent : task.getDependents()) {
-            dependent.removeDependency(task);
+        for (Task<T> dependent : dependencyRegistry.getDependents(task)) {
+            dependencyRegistry.removeDependency(dependent, task);
             if (areDependenciesResolved(dependent)) {
                 Task<T> listedDependent = tasks.get(dependent.getId());
                 if (listedDependent != null) {
@@ -136,7 +168,7 @@ public class DefaultDagRunner<T extends Serializable> implements DynamicDagResol
     }
 
     protected boolean areDependenciesResolved(Task task) {
-        return task.getDependencies().size() == 0;
+        return dependencyRegistry.getDependencies(task).size() == 0;
     }
 
 
@@ -148,7 +180,7 @@ public class DefaultDagRunner<T extends Serializable> implements DynamicDagResol
         while (!stack.isEmpty()) {
             Task poppedTask = stack.pop();
             dependencies.add(poppedTask);
-            stack.addAll(poppedTask.getDependencies());
+            stack.addAll(dependencyRegistry.getDependencies(poppedTask));
         }
 
         return Collections.unmodifiableSet(dependencies);
@@ -163,7 +195,7 @@ public class DefaultDagRunner<T extends Serializable> implements DynamicDagResol
         while (!stack.isEmpty()) {
             Task poppedTask = stack.pop();
             dependents.add(poppedTask);
-            stack.addAll(poppedTask.getDependents());
+            stack.addAll(dependencyRegistry.getDependencies(poppedTask));
         }
 
         return Collections.unmodifiableSet(dependents);

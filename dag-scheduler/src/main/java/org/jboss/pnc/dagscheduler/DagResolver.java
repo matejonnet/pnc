@@ -19,14 +19,21 @@ package org.jboss.pnc.dagscheduler;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
+ *
+ *
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public interface DynamicDagResolver<T extends Serializable> {
+public interface DagResolver<T extends Serializable> {
 
     void submitTask(Task<T> task);
+
+    Task<T> createTask(String id, T data);
+
+    Task<T> createTask(String id, T data, Set<Task<T>> dependencies);
 
     void resolveTask(String id, CompletedTask.Status status);
 
@@ -40,8 +47,8 @@ public interface DynamicDagResolver<T extends Serializable> {
 
     void submitTasks(Collection<Task<T>> tasks);
 
-    //    void setOnTaskReady(Consumer<Task<T>> task);
-//
-//    void setOnTaskCompleted(Consumer<CompletedTask<T>> task);
+    Set<Task<T>> getDependencies(Task<T> task);
+
+    Set<Task<T>> getDependents(Task<T> a);
 
 }
