@@ -18,14 +18,13 @@
 package org.jboss.pnc.dagscheduler.local;
 
 import org.jboss.pnc.dagscheduler.CompletedTask;
-import org.jboss.pnc.dagscheduler.DependencyRegistry;
 import org.jboss.pnc.dagscheduler.DagResolver;
+import org.jboss.pnc.dagscheduler.DependencyRegistry;
 import org.jboss.pnc.dagscheduler.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -61,47 +60,62 @@ public class DefaultDagResolver<T extends Serializable> implements DagResolver<T
         this.onTaskCompleted = onTaskCompleted;
     }
 
-    @Override
-    public void submitTasks(Collection<Task<T>> tasks) {
-        for (Task<T> task : tasks) {
-            submitTask(task);
-        }
-    }
+//    @Override
+//    public void submitTasks(Collection<Task<T>> tasks) {
+//        for (Task<T> task : tasks) {
+//            submitTask(task);
+//        }
+//    }
 
     @Override
-    public void submitTask(Task<T> task) {
-        Task existing = tasks.putIfAbsent(task.getId(), task);
+    public Task<T> submitTask(String id, T data, Set<Task<T>> dependencies) {
+        logger.debug("Adding new task {} ...", id);
+        Task<T> task = new Task(id, data);
+
+        if (introducesCycle(task, dependencies)) { //TODO
+            onTaskCompleted.accept(new CompletedTask(task, CompletedTask.Status.INTRODUCES_CYCLE_DEPENDENCY));
+            return task;
+        }
+
+        for (Task<T> dependency : dependencies) {
+            dependencyRegistry.addDependency(task, dependency);
+        }
+
+        Task existing = tasks.get(task.getId());
         if (existing == null) {
-            //check for cycles
+            if (introducesCycle(task, dependencies)) {
+                onTaskCompleted.accept(new CompletedTask(task, CompletedTask.Status.INTRODUCES_CYCLE_DEPENDENCY));
+                return task;
+            }
+            tasks.put(task.getId(), task);
             wireDependencies(task);
-            if (areDependenciesResolved(task)) {
+            if (!dependencyRegistry.hasDependencies(task)) { //all dependencies completed
                 onTaskReady.accept(task);
             }
         } else {
             onTaskCompleted.accept(new CompletedTask(task, CompletedTask.Status.ALREADY_SUBMITTED));
         }
-    }
-
-    @Override
-    public Task<T> createTask(String id, T data) {
-        return createTask(id, data, Collections.EMPTY_SET);
-    }
-
-    @Override
-    public Task<T> createTask(String id, T data, Set<Task<T>> dependencies) {
-        Task<T> task = new Task(id, data);
-        for (Task<T> dependency : dependencies) {
-            dependencyRegistry.addDependency(task, dependency);
-        }
         return task;
     }
 
+    private boolean introducesCycle(Task<T> task, Set<Task<T>> dependencies) {
+        Set<Task<T>> allTaskDependents = getDependents(task);
+        // check if any dependent depends on any dependency
+        for (Task<T> dependency : dependencies) {
+            for (Task<T> transitiveDependency : getAllTaskDependencies(dependency)) {
+                if (allTaskDependents.contains(transitiveDependency)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     private void wireDependencies(Task<T> task) {
         for (Task<T> dependency : dependencyRegistry.getDependencies(task)) {
             Task<T> submittedTask = tasks.get(dependency.getId());
             if (submittedTask == null) {
-                onTaskCompleted.accept(new CompletedTask(task, CompletedTask.Status.MISSING_DEPENENCY));
+                onTaskCompleted.accept(new CompletedTask(task, CompletedTask.Status.MISSING_DEPENDENCY));
             } else {
                 dependencyRegistry.addDependency(task, submittedTask);
             }
@@ -158,7 +172,7 @@ public class DefaultDagResolver<T extends Serializable> implements DagResolver<T
 
         for (Task<T> dependent : dependencyRegistry.getDependents(task)) {
             dependencyRegistry.removeDependency(dependent, task);
-            if (areDependenciesResolved(dependent)) {
+            if (!dependencyRegistry.hasDependencies(dependent)) { //all dependencies completed
                 Task<T> listedDependent = tasks.get(dependent.getId());
                 if (listedDependent != null) {
                     onTaskReady.accept(dependent);
@@ -166,11 +180,6 @@ public class DefaultDagResolver<T extends Serializable> implements DagResolver<T
             }
         }
     }
-
-    protected boolean areDependenciesResolved(Task task) {
-        return dependencyRegistry.getDependencies(task).size() == 0;
-    }
-
 
     public Set<Task<T>> getAllTaskDependencies(Task<T> task) {
         Set<Task<T>> dependencies = new HashSet<>();
@@ -180,7 +189,14 @@ public class DefaultDagResolver<T extends Serializable> implements DagResolver<T
         while (!stack.isEmpty()) {
             Task poppedTask = stack.pop();
             dependencies.add(poppedTask);
-            stack.addAll(dependencyRegistry.getDependencies(poppedTask));
+            Set<Task<T>> poppedTaskDependencies = dependencyRegistry.getDependencies(poppedTask);
+
+            for (Task<T> poppedTaskDependency : poppedTaskDependencies) {
+                if (dependencies.contains(poppedTaskDependency)) {
+                    throw new RuntimeException("Task " + task + " is introducing cyclic dependencies!");
+                }
+            }
+            stack.addAll(poppedTaskDependencies);
         }
 
         return Collections.unmodifiableSet(dependencies);

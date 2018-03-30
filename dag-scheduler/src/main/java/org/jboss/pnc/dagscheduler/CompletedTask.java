@@ -32,6 +32,6 @@ public class CompletedTask<T extends Serializable> {
     private final Status status;
 
     public enum Status {
-        DONE, ERROR, FAILED_DEPENDENCY, ALREADY_SUBMITTED, FAILED, MISSING_DEPENENCY;
+        DONE, ERROR, FAILED_DEPENDENCY, ALREADY_SUBMITTED, FAILED, MISSING_DEPENDENCY, INTRODUCES_CYCLE_DEPENDENCY;
     }
 }

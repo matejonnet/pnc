@@ -32,4 +32,6 @@ public interface DependencyRegistry<T extends Serializable> {
     boolean addDependency(Task<T> parent, Task<T> child);
 
     boolean removeDependency(Task<T> parent, Task<T> child);
+
+    boolean hasDependencies(Task<T> task);
 }

@@ -54,7 +54,6 @@ public class ResolverTest {
         Consumer<Task<String>> onTaskReady = task -> {
             logger.info("Ready task: {}.", task.getId());
             ready.add(task);
-            resolver.resolveTask(task.getId(), CompletedTask.Status.DONE);
         };
 
         Consumer<CompletedTask> onTaskCompleted = completedTask -> {
@@ -64,22 +63,52 @@ public class ResolverTest {
         resolver.setOnReadyListener(onTaskReady);
         resolver.setOnCompleteListener(onTaskCompleted);
 
-        Task<String> a = resolver.createTask("A", "data");
-        Task<String> b = resolver.createTask("B", "data", new HashSet<>(Arrays.asList(a)));
-        Task<String> c = resolver.createTask("C", "data", new HashSet<>(Arrays.asList(b)));
-        Task<String> d = resolver.createTask("D", "data");
-        Task<String> e = resolver.createTask("E", "data", new HashSet<>(Arrays.asList(b,d)));
+        Task<String> a = resolver.submitTask("A", "data");
+        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a)));
+        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b)));
+        Task<String> d = resolver.submitTask("D", "data");
+        Task<String> e = resolver.submitTask("E", "data", new HashSet<>(Arrays.asList(b,d)));
 
         Assert.assertEquals(1, resolver.getDependents(a).size());
         Assert.assertEquals(1, resolver.getDependencies(b).size());
         Assert.assertEquals(1, resolver.getDependencies(c).size());
         Assert.assertEquals(2, resolver.getDependencies(e).size());
-
-        resolver.submitTasks(Arrays.asList(a, b, c, d, e));
         Assert.assertEquals(5, resolver.getCount());
+
+        resolver.resolveTask(a.getId(), CompletedTask.Status.DONE);
+        resolver.resolveTask(b.getId(), CompletedTask.Status.DONE);
+        resolver.resolveTask(c.getId(), CompletedTask.Status.DONE);
+        resolver.resolveTask(d.getId(), CompletedTask.Status.DONE);
 
         Assert.assertEquals(5, ready.size());
         Assert.assertTrue(ready.contains(e));
+    }
+
+    @Test
+    public void shouldDetectCycleDependency() {
+        final DagResolver<String> resolver = new DefaultDagResolver();
+
+        List<CompletedTask> cycles = new ArrayList<>();
+        Consumer<Task<String>> onTaskReady = task -> {
+        };
+
+        Consumer<CompletedTask> onTaskCompleted = completedTask -> {
+            if (completedTask.getStatus().equals(CompletedTask.Status.INTRODUCES_CYCLE_DEPENDENCY)) {
+                cycles.add(completedTask);
+            }
+        };
+
+        resolver.setOnReadyListener(onTaskReady);
+        resolver.setOnCompleteListener(onTaskCompleted);
+
+        Task<String> a = resolver.submitTask("A", "data");
+        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a)));
+        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b)));
+        Task<String> a1 = resolver.submitTask("A", "data", new HashSet<>(Arrays.asList(c)));
+
+        Assert.assertEquals(1, cycles.size());
+        Assert.assertEquals("A", cycles.get(0).getTask().getId());
+
     }
 
 }

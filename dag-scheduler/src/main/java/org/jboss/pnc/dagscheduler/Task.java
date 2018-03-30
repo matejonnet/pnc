@@ -41,4 +41,21 @@ public class Task<T extends Serializable> implements Serializable {
     public String toString() {
         return id;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        Task<?> task = (Task<?>) o;
+
+        return id.equals(task.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

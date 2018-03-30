@@ -18,22 +18,23 @@
 package org.jboss.pnc.dagscheduler;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- *
+ * Takes a tasks with dependencies and notifies listeners when the task has all the dependencies resolved.
+ * New tasks (parent or dependency) can be added at any time.
  *
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
 public interface DagResolver<T extends Serializable> {
 
-    void submitTask(Task<T> task);
+    Task<T> submitTask(String id, T data, Set<Task<T>> dependencies);
 
-    Task<T> createTask(String id, T data);
-
-    Task<T> createTask(String id, T data, Set<Task<T>> dependencies);
+    default Task<T> submitTask(String id, T data) {
+        return submitTask(id, data, Collections.emptySet());
+    }
 
     void resolveTask(String id, CompletedTask.Status status);
 
@@ -44,8 +45,6 @@ public interface DagResolver<T extends Serializable> {
     void setOnReadyListener(Consumer<Task<T>> onTaskReady);
 
     void setOnCompleteListener(Consumer<CompletedTask> onTaskCompleted);
-
-    void submitTasks(Collection<Task<T>> tasks);
 
     Set<Task<T>> getDependencies(Task<T> task);
 

@@ -32,14 +32,21 @@ import java.util.concurrent.ConcurrentHashMap;
 class DefaultDependencyRegistry<T extends Serializable> implements DependencyRegistry<T> {
 
     private final Map<Task<T>, Set<Task<T>>> dependencies = new ConcurrentHashMap<>();
-    private final Map<Task<T>, Set<Task<T>>> dependents = new ConcurrentHashMap<>();
 
     private Set<Task<T>> doGetDependencies(Task<T> task) {
         return this.dependencies.computeIfAbsent(task, (t) -> new HashSet<>());
     }
 
     private Set<Task<T>> doGetDependents(Task<T> task) {
-        return this.dependents.computeIfAbsent(task, (t) -> new HashSet<>());
+        Set<Task<T>> dependents = new HashSet<>();
+        for (Map.Entry<Task<T>, Set<Task<T>>> dependenciesEntry : this.dependencies.entrySet()) {
+            for (Task<T> dependency : dependenciesEntry.getValue()) {
+                if (dependency.equals(task)) {
+                    dependents.add(dependenciesEntry.getKey());
+                }
+            }
+        }
+        return dependents;
     }
 
     @Override
@@ -62,5 +69,10 @@ class DefaultDependencyRegistry<T extends Serializable> implements DependencyReg
     public boolean removeDependency(Task<T> parent, Task<T> child) {
         doGetDependents(child).remove(parent);
         return doGetDependencies(parent).remove(child);
+    }
+
+    @Override
+    public boolean hasDependencies(Task<T> task) {
+        return getDependencies(task).size() > 0;
     }
 }
