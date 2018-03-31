@@ -17,30 +17,16 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import java.util.Set;
-
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public interface DependencyRegistry {
+public interface TaskRegistry {
 
-    boolean addDependency(String parentId, String childId);
+    boolean contains(String id);
 
-    boolean removeDependency(String parentId, String childId);
+    void add(String id);
 
-    boolean hasDependencies(String id);
+    void remove(String id);
 
-    Set<String> getDependencies(String id);
-
-    Set<String> getDependents(String id);
-
-    /**
-     * @return All transitive dependencies
-     */
-    Set<String> getAllTaskDependencies(String id);
-
-    /**
-     * @return All transitive dependents
-     */
-    Set<String> getAllTaskDependents(String id);
+    int size();
 }

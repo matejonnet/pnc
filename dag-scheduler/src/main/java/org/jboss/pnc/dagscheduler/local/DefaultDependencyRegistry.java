@@ -18,21 +18,24 @@
 package org.jboss.pnc.dagscheduler.local;
 
 import org.jboss.pnc.dagscheduler.DependencyRegistry;
+import org.jboss.util.collection.ConcurrentSet;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-class DefaultDependencyRegistry implements DependencyRegistry {
+public class DefaultDependencyRegistry implements DependencyRegistry {
 
     private final Map<String, Set<String>> dependencies = new ConcurrentHashMap<>();
 
     private Set<String> doGetDependencies(String id) {
-        return this.dependencies.computeIfAbsent(id, (t) -> new HashSet<>());
+        return this.dependencies.computeIfAbsent(id, (t) -> new ConcurrentSet<>());
     }
 
     private Set<String> doGetDependents(String id) {
@@ -72,5 +75,42 @@ class DefaultDependencyRegistry implements DependencyRegistry {
     @Override
     public boolean hasDependencies(String id) {
         return getDependencies(id).size() > 0;
+    }
+
+    @Override
+    public Set<String> getAllTaskDependencies(String id) {
+        Set<String> dependencies = new HashSet<>();
+        Stack<String> stack = new Stack<>();
+        stack.add(id);
+
+        while (!stack.isEmpty()) {
+            String poppedTaskId = stack.pop();
+            dependencies.add(poppedTaskId);
+            Set<String> poppedTaskDependencies = getDependencies(poppedTaskId);
+
+            for (String poppedTaskDependency : poppedTaskDependencies) {
+                if (dependencies.contains(poppedTaskDependency)) {
+                    throw new RuntimeException("Task " + id + " is introducing cyclic dependencies.");
+                }
+            }
+            stack.addAll(poppedTaskDependencies);
+        }
+
+        return Collections.unmodifiableSet(dependencies);
+    }
+
+    @Override
+    public Set<String> getAllTaskDependents(String id) {
+        Set<String> dependents = new HashSet<>();
+        Stack<String> stack = new Stack<>();
+        stack.add(id);
+
+        while (!stack.isEmpty()) {
+            String poppedTaskId = stack.pop();
+            dependents.add(poppedTaskId);
+            stack.addAll(getDependencies(poppedTaskId));
+        }
+
+        return Collections.unmodifiableSet(dependents);
     }
 }

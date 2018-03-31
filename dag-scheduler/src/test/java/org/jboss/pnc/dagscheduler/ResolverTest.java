@@ -17,7 +17,6 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import org.jboss.pnc.dagscheduler.local.DefaultDagResolver;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,7 +47,7 @@ public class ResolverTest {
 
     @Test
     public void shouldEmitAllWhenDependenciesAreResolved() throws Exception {
-        final DagResolver<String> resolver = new DefaultDagResolver();
+        final DagResolver resolver = new DefaultDagResolver();
 
         List<String> ready = new ArrayList<>();
         Consumer<String> onTaskReady = taskId -> {
@@ -63,30 +62,30 @@ public class ResolverTest {
         resolver.setOnReadyListener(onTaskReady);
         resolver.setOnCompleteListener(onTaskCompleted);
 
-        Task<String> a = resolver.submitTask("A", "data");
-        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a.getId())));
-        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b.getId())));
-        Task<String> d = resolver.submitTask("D", "data");
-        Task<String> e = resolver.submitTask("E", "data", new HashSet<>(Arrays.asList(b.getId(),d.getId())));
+        resolver.submitTask("A");
+        resolver.submitTask("B", new HashSet<>(Arrays.asList("A")));
+        resolver.submitTask("C", new HashSet<>(Arrays.asList("B")));
+        resolver.submitTask("D");
+        resolver.submitTask("E", new HashSet<>(Arrays.asList("B", "D")));
 
-        Assert.assertEquals(1, resolver.getDependents(a.getId()).size());
-        Assert.assertEquals(1, resolver.getDependencies(b.getId()).size());
-        Assert.assertEquals(1, resolver.getDependencies(c.getId()).size());
-        Assert.assertEquals(2, resolver.getDependencies(e.getId()).size());
+        Assert.assertEquals(1, resolver.getDependents("A").size());
+        Assert.assertEquals(1, resolver.getDependencies("B").size());
+        Assert.assertEquals(1, resolver.getDependencies("C").size());
+        Assert.assertEquals(2, resolver.getDependencies("E").size());
         Assert.assertEquals(5, resolver.getCount());
 
-        resolver.resolveTask(a.getId(), ResolutionStatus.SUCCESS);
-        resolver.resolveTask(b.getId(), ResolutionStatus.SUCCESS);
-        resolver.resolveTask(c.getId(), ResolutionStatus.SUCCESS);
-        resolver.resolveTask(d.getId(), ResolutionStatus.SUCCESS);
+        resolver.resolveTask("A", ResolutionStatus.SUCCESS);
+        resolver.resolveTask("B", ResolutionStatus.SUCCESS);
+        resolver.resolveTask("C", ResolutionStatus.SUCCESS);
+        resolver.resolveTask("D", ResolutionStatus.SUCCESS);
 
         Assert.assertEquals(5, ready.size());
-        Assert.assertTrue(ready.contains(e.getId()));
+        Assert.assertTrue(ready.contains("E"));
     }
 
     @Test
     public void shouldDetectCycleDependency() {
-        final DagResolver<String> resolver = new DefaultDagResolver();
+        final DagResolver resolver = new DefaultDagResolver();
 
         List<CompletedTask> cycles = new ArrayList<>();
         Consumer<String> onTaskReady = taskId -> {
@@ -101,21 +100,19 @@ public class ResolverTest {
         resolver.setOnReadyListener(onTaskReady);
         resolver.setOnCompleteListener(onTaskCompleted);
 
-        Task<String> a = resolver.submitTask("A", "data");
-        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a.getId())));
-        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b.getId())));
-        Task<String> a1 = resolver.submitTask("A", "data", new HashSet<>(Arrays.asList(c.getId())));
+        resolver.submitTask("A");
+        resolver.submitTask("B", new HashSet<>(Arrays.asList("A")));
+        resolver.submitTask("C", new HashSet<>(Arrays.asList("B")));
+        resolver.submitTask("A", new HashSet<>(Arrays.asList("C")));
 
         Assert.assertEquals(1, cycles.size());
         Assert.assertEquals("A", cycles.get(0).getTaskId());
 
-        Task<String> d1 = resolver.submitTask("D1", "data", new HashSet<String>(Arrays.asList("D2")));
-        Task<String> d2 = resolver.submitTask("D2", "data", new HashSet<String>(Arrays.asList("D1")));
+        resolver.submitTask("D1", new HashSet<String>(Arrays.asList("D2")));
+        resolver.submitTask("D2", new HashSet<String>(Arrays.asList("D1")));
 
         Assert.assertEquals(2, cycles.size());
         Assert.assertEquals("D2", cycles.get(1).getTaskId());
-
-
     }
 
 }

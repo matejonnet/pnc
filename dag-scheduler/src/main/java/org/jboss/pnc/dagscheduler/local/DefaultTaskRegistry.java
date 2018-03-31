@@ -15,32 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.dagscheduler;
+package org.jboss.pnc.dagscheduler.local;
+
+import org.jboss.pnc.dagscheduler.TaskRegistry;
+import org.jboss.util.collection.ConcurrentSet;
 
 import java.util.Set;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public interface DependencyRegistry {
+public class DefaultTaskRegistry implements TaskRegistry {
 
-    boolean addDependency(String parentId, String childId);
+    private final Set<String> tasks = new ConcurrentSet<>();
 
-    boolean removeDependency(String parentId, String childId);
+    @Override
+    public boolean contains(String id) {
+        return tasks.contains(id);
+    }
 
-    boolean hasDependencies(String id);
+    @Override
+    public void add(String id) {
+        tasks.add(id);
+    }
 
-    Set<String> getDependencies(String id);
+    @Override
+    public void remove(String id) {
+        tasks.remove(id);
+    }
 
-    Set<String> getDependents(String id);
-
-    /**
-     * @return All transitive dependencies
-     */
-    Set<String> getAllTaskDependencies(String id);
-
-    /**
-     * @return All transitive dependents
-     */
-    Set<String> getAllTaskDependents(String id);
+    @Override
+    public int size() {
+        return tasks.size();
+    }
 }

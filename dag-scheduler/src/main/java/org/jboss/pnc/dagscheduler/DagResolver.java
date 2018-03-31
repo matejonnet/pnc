@@ -17,7 +17,6 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -28,13 +27,13 @@ import java.util.function.Consumer;
  *
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public interface DagResolver<T extends Serializable> {
+public interface DagResolver {
 
-    default Task<T> submitTask(String id, T data) {
-        return submitTask(id, data, Collections.emptySet());
+    default void submitTask(String id) {
+        submitTask(id, Collections.emptySet());
     }
 
-    Task<T> submitTask(String id, T data, Set<String> dependencies);
+    void submitTask(String id, Set<String> dependencies);
 
     void resolveTask(String id, ResolutionStatus resolutionStatus);
 
@@ -44,7 +43,7 @@ public interface DagResolver<T extends Serializable> {
 
     void setOnCompleteListener(Consumer<CompletedTask> onTaskCompleted);
 
-    Set<String> getDependencies(String taskId);
+    Set<String> getDependencies(String id);
 
-    Set<String> getDependents(String taskId);
+    Set<String> getDependents(String id);
 }
