@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
 * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2014-12-23.
@@ -53,16 +51,6 @@ public class BuildTask {
 
     private BuildCoordinationStatus status = BuildCoordinationStatus.NEW;
     private String statusDescription;
-
-    /**
-     * A list of builds waiting for this build to complete.
-     */
-    private final Set<BuildTask> dependants = new HashSet<>();
-
-    /**
-     * The builds which must be completed before this build can start
-     */
-    private Set<BuildTask> dependencies = new HashSet<>();
 
     private final BuildSetTask buildSetTask;
 
@@ -104,17 +92,6 @@ public class BuildTask {
         return productMilestone;
     }
 
-    public Set<BuildTask> getDependencies() {
-        return dependencies;
-    }
-
-    public void addDependency(BuildTask buildTask) {
-        if (!dependencies.contains(buildTask)) {
-            dependencies.add(buildTask);
-            buildTask.addDependant(this);
-        }
-    }
-
     /**
      * @return current status
      */
@@ -151,13 +128,6 @@ public class BuildTask {
             return false;
         }
         return buildConfiguration.dependsOn(buildTask.getBuildConfiguration());
-    }
-
-    public void addDependant(BuildTask buildTask) {
-        if (!dependants.contains(buildTask)) {
-            dependants.add(buildTask);
-            buildTask.addDependency(this);
-        }
     }
 
     /**
@@ -223,21 +193,6 @@ public class BuildTask {
 
     public BuildSetTask getBuildSetTask() {
         return buildSetTask;
-    }
-
-    /**
-     * Check if this build is ready to build, for example if all dependency builds
-     * are complete.
-     * 
-     * @return true if already built, false otherwise
-     */
-    public boolean readyToBuild() {
-        for (BuildTask buildTask : dependencies) {
-            if(!buildTask.getStatus().isCompleted()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

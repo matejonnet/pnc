@@ -50,17 +50,15 @@ public class ResolverTest {
         final DagResolver resolver = new DefaultDagResolver();
 
         List<String> ready = new ArrayList<>();
-        Consumer<String> onTaskReady = taskId -> {
-            logger.info("Ready task: {}.", taskId);
-            ready.add(taskId);
+
+        Consumer<StatusUpdate> onStatusUpdate = update -> {
+            if (update.getStatus().equals(Status.READY)) {
+                logger.info("Ready task: {}.", update.getTaskId());
+                ready.add(update.getTaskId());
+            }
         };
 
-        Consumer<CompletedTask> onTaskCompleted = completedTask -> {
-
-        };
-
-        resolver.setOnReadyListener(onTaskReady);
-        resolver.setOnCompleteListener(onTaskCompleted);
+        resolver.setStatusUpdateListener(onStatusUpdate);
 
         resolver.submitTask("A");
         resolver.submitTask("B", new HashSet<>(Arrays.asList("A")));
@@ -87,18 +85,15 @@ public class ResolverTest {
     public void shouldDetectCycleDependency() {
         final DagResolver resolver = new DefaultDagResolver();
 
-        List<CompletedTask> cycles = new ArrayList<>();
-        Consumer<String> onTaskReady = taskId -> {
-        };
+        List<StatusUpdate> cycles = new ArrayList<>();
 
-        Consumer<CompletedTask> onTaskCompleted = completedTask -> {
-            if (completedTask.getStatus().equals(CompletionStatus.INTRODUCES_CYCLE_DEPENDENCY)) {
-                cycles.add(completedTask);
+        Consumer<StatusUpdate> onStatusUpdate = update -> {
+            if (update.getStatus().equals(Status.INTRODUCES_CYCLE_DEPENDENCY)) {
+                cycles.add(update);
             }
         };
 
-        resolver.setOnReadyListener(onTaskReady);
-        resolver.setOnCompleteListener(onTaskCompleted);
+        resolver.setStatusUpdateListener(onStatusUpdate);
 
         resolver.submitTask("A");
         resolver.submitTask("B", new HashSet<>(Arrays.asList("A")));

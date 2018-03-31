@@ -18,20 +18,23 @@
 package org.jboss.pnc.dagscheduler;
 
 /**
+ * Status used to notify resolved that a task execution is completed.
+ *
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
 public enum ResolutionStatus {
 
-    SUCCESS(true, CompletionStatus.SUCCESS),
-    FAILED(false, CompletionStatus.FAILED),
-    CANCELLED(false, CompletionStatus.CANCELED),
-    TIME_OUT(false, CompletionStatus.TIME_OUT);
+    SUCCESS(true, Status.SUCCESS),
+    FAILED(false, Status.FAILED),
+    CANCELLED(false, Status.CANCELED),
+    TIME_OUT(false, Status.TIME_OUT),
+    SYSTEM_ERROR(false, Status.SYSTEM_ERROR);
 
     private boolean success;
 
-    private CompletionStatus completedStatus;
+    private Status completedStatus;
 
-    ResolutionStatus(boolean success, CompletionStatus completedStatus) {
+    ResolutionStatus(boolean success, Status completedStatus) {
         this.success = success;
         this.completedStatus = completedStatus;
     }
@@ -40,7 +43,7 @@ public enum ResolutionStatus {
         return success;
     }
 
-    public CompletionStatus toCompletionStatus() {
+    public Status toCompletionStatus() {
         return completedStatus;
     }
 }

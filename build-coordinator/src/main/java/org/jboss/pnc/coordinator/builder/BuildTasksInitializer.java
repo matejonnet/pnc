@@ -21,13 +21,10 @@ package org.jboss.pnc.coordinator.builder;
 import org.jboss.pnc.coordinator.builder.datastore.DatastoreAdapter;
 import org.jboss.pnc.model.BuildConfigSetRecord;
 import org.jboss.pnc.model.BuildConfiguration;
-import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.BuildConfigurationSet;
-import org.jboss.pnc.model.ProductMilestone;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.spi.BuildOptions;
 import org.jboss.pnc.spi.coordinator.BuildSetTask;
-import org.jboss.pnc.spi.coordinator.BuildTask;
 import org.jboss.pnc.spi.datastore.DatastoreException;
 import org.jboss.pnc.spi.exception.CoreException;
 import org.slf4j.Logger;
@@ -35,9 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -53,8 +48,7 @@ public class BuildTasksInitializer {
         this.datastoreAdapter = datastoreAdapter;
     }
 
-    public BuildSetTask createBuildSetTask(BuildConfiguration configuration, User user, BuildOptions buildOptions,
-            Supplier<Integer> buildTaskIdProvider, Set<BuildTask> submittedBuildTasks) throws CoreException {
+    public BuildSetTask createBuildSetTask(BuildConfiguration configuration, BuildOptions buildOptions) throws CoreException {
 
         BuildSetTask buildSetTask =
                 BuildSetTask.Builder.newBuilder()
@@ -65,7 +59,7 @@ public class BuildTasksInitializer {
         Set<BuildConfiguration> toBuild = new HashSet<>();
         collectBuildTasks(configuration, buildOptions, toBuild);
         log.debug("Collected build tasks for configuration: {}. Collected: {}.", configuration, toBuild.stream().map(BuildConfiguration::toString).collect(Collectors.joining(", ")));
-        fillBuildTaskSet(buildSetTask, user, buildTaskIdProvider, configuration.getCurrentProductMilestone(), toBuild, submittedBuildTasks);
+//        fillBuildTaskSet(buildSetTask, user, buildTaskIdProvider, configuration.getCurrentProductMilestone(), toBuild, submittedBuildTasks);
         return buildSetTask;
     }
 
@@ -104,9 +98,8 @@ public class BuildTasksInitializer {
             BuildConfigurationSet buildConfigurationSet,
             User user,
             BuildOptions buildOptions,
-            Supplier<Integer> buildTaskIdProvider,
-            Set<BuildConfiguration> buildConfigurations,
-            Set<BuildTask> submittedBuildTasks) throws CoreException {
+            Set<BuildConfiguration> buildConfigurations
+        ) throws CoreException {
         BuildConfigSetRecord buildConfigSetRecord = BuildConfigSetRecord.Builder.newBuilder()
                 .buildConfigurationSet(buildConfigurationSet)
                 .user(user)
@@ -130,13 +123,13 @@ public class BuildTasksInitializer {
 
         // initializeBuildTasksInSet
         log.debug("Initializing BuildTasks In Set for BCs: {}.", buildConfigurations.stream().map(bc ->bc.toString()).collect(Collectors.joining("; ")));
-        fillBuildTaskSet(
-                buildSetTask,
-                user,
-                buildTaskIdProvider,
-                buildConfigurationSet.getCurrentProductMilestone(),
-                buildConfigurations,
-                submittedBuildTasks);
+//        fillBuildTaskSet(
+//                buildSetTask,
+//                user,
+//                buildTaskIdProvider,
+//                buildConfigurationSet.getCurrentProductMilestone(),
+//                buildConfigurations,
+//                submittedBuildTasks);
         return buildSetTask;
     }
 
@@ -146,48 +139,48 @@ public class BuildTasksInitializer {
      * @param buildSetTask The build set task which will contain the build tasks.  This must already have
      *                     initialized the BuildConfigSet, BuildConfigSetRecord, Milestone, etc.
      */
-    private void fillBuildTaskSet(BuildSetTask buildSetTask,
-                                  User user,
-                                  Supplier<Integer> buildTaskIdProvider,
-                                  ProductMilestone productMilestone,
-                                  Set<BuildConfiguration> toBuild,
-                                  Set<BuildTask> alreadySubmittedBuildTasks) { //TODO toBuild should be a set of BuildConfigurationAudited entities
-        for (BuildConfiguration buildConfig : toBuild) {
-            BuildConfigurationAudited buildConfigAudited =
-                    datastoreAdapter.getLatestBuildConfigurationAudited(buildConfig.getId());
-
-            Optional<BuildTask> taskOptional = alreadySubmittedBuildTasks.stream()
-                    .filter(bt -> bt.getBuildConfigurationAudited().equals(buildConfigAudited))
-                    .findAny();
-
-            BuildTask buildTask;
-            if (taskOptional.isPresent()) {
-                buildTask = taskOptional.get();
-                log.debug("Linking BuildConfigurationAudited {} to existing task {}.", buildConfigAudited, buildTask);
-            } else {
-                buildTask = BuildTask.build(
-                        buildConfig,
-                        buildConfigAudited,
-                        buildSetTask.getBuildOptions(),
-                        user,
-                        buildTaskIdProvider.get(),
-                        buildSetTask,
-                        buildSetTask.getStartTime(), productMilestone);
-                log.debug("Created new buildTask {} for BuildConfigurationAudited {}.", buildTask, buildConfigAudited);
-            }
-
-            buildSetTask.addBuildTask(buildTask);
-        }
-
-        // Loop again to set dependencies
-        for (BuildTask buildTask : buildSetTask.getBuildTasks()) {
-            for (BuildTask checkDepBuildTask : buildSetTask.getBuildTasks()) {
-                if (buildTask.hasConfigDependencyOn(checkDepBuildTask)) {
-                    buildTask.addDependency(checkDepBuildTask);
-                }
-            }
-        }
-    }
+//    private void fillBuildTaskSet(BuildSetTask buildSetTask,
+//                                  User user,
+//                                  Supplier<Integer> buildTaskIdProvider,
+//                                  ProductMilestone productMilestone,
+//                                  Set<BuildConfiguration> toBuild,
+//                                  Set<BuildTask> alreadySubmittedBuildTasks) { //TODO toBuild should be a set of BuildConfigurationAudited entities
+//        for (BuildConfiguration buildConfig : toBuild) {
+//            BuildConfigurationAudited buildConfigAudited =
+//                    datastoreAdapter.getLatestBuildConfigurationAudited(buildConfig.getId());
+//
+//            Optional<BuildTask> taskOptional = alreadySubmittedBuildTasks.stream()
+//                    .filter(bt -> bt.getBuildConfigurationAudited().equals(buildConfigAudited))
+//                    .findAny();
+//
+//            BuildTask buildTask;
+//            if (taskOptional.isPresent()) {
+//                buildTask = taskOptional.get();
+//                log.debug("Linking BuildConfigurationAudited {} to existing task {}.", buildConfigAudited, buildTask);
+//            } else {
+//                buildTask = BuildTask.build(
+//                        buildConfig,
+//                        buildConfigAudited,
+//                        buildSetTask.getBuildOptions(),
+//                        user,
+//                        buildTaskIdProvider.get(),
+//                        buildSetTask,
+//                        buildSetTask.getStartTime(), productMilestone);
+//                log.debug("Created new buildTask {} for BuildConfigurationAudited {}.", buildTask, buildConfigAudited);
+//            }
+//
+//            buildSetTask.addBuildTask(buildTask);
+//        }
+//
+//        // Loop again to set dependencies
+//        for (BuildTask buildTask : buildSetTask.getBuildTasks()) {
+//            for (BuildTask checkDepBuildTask : buildSetTask.getBuildTasks()) {
+//                if (buildTask.hasConfigDependencyOn(checkDepBuildTask)) {
+//                    buildTask.addDependency(checkDepBuildTask);
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Save the build config set record using a single thread for all db operations.

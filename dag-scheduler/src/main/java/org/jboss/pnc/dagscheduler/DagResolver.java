@@ -18,6 +18,7 @@
 package org.jboss.pnc.dagscheduler;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -33,15 +34,16 @@ public interface DagResolver {
         submitTask(id, Collections.emptySet());
     }
 
-    void submitTask(String id, Set<String> dependencies);
+    /**
+     * @return non-empty optional in case the task is rejected
+     */
+    Optional<StatusUpdate> submitTask(String id, Set<String> dependencies);
 
     void resolveTask(String id, ResolutionStatus resolutionStatus);
 
     int getCount();
 
-    void setOnReadyListener(Consumer<String> onTaskReady);
-
-    void setOnCompleteListener(Consumer<CompletedTask> onTaskCompleted);
+    void setStatusUpdateListener(Consumer<StatusUpdate> onTaskCompleted);
 
     Set<String> getDependencies(String id);
 

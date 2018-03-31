@@ -22,6 +22,7 @@ import org.jboss.pnc.dagscheduler.local.DefaultTaskRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -36,8 +37,7 @@ public class DefaultDagResolver implements DagResolver {
 
     private final DependencyRegistry dependencyRegistry;
 
-    private Consumer<String> onTaskReady = (t) -> {};
-    private Consumer<CompletedTask> onTaskCompleted = (t) -> {};
+    private Consumer<StatusUpdate> onStatusUpdate = (t) -> {};
 
     public DefaultDagResolver() {
         taskRegistry = new DefaultTaskRegistry();
@@ -50,22 +50,17 @@ public class DefaultDagResolver implements DagResolver {
     }
 
     @Override
-    public void setOnReadyListener(Consumer<String> onTaskReady) {
-        this.onTaskReady = onTaskReady;
+    public void setStatusUpdateListener(Consumer<StatusUpdate> onStatusUpdate) {
+        this.onStatusUpdate = onStatusUpdate;
     }
 
     @Override
-    public void setOnCompleteListener(Consumer<CompletedTask> onTaskCompleted) {
-        this.onTaskCompleted = onTaskCompleted;
-    }
-
-    @Override
-    public void submitTask(String id, Set<String> dependencies) {
+    public Optional<StatusUpdate> submitTask(String id, Set<String> dependencies) {
         logger.debug("Adding new task {} ...", id);
 
         if (introducesCycle(id, dependencies)) {
-            onTaskCompleted.accept(new CompletedTask(id, CompletionStatus.INTRODUCES_CYCLE_DEPENDENCY));
-            return;
+            onStatusUpdate.accept(new StatusUpdate(id, Status.INTRODUCES_CYCLE_DEPENDENCY));
+            return Optional.of(new StatusUpdate(id, Status.INTRODUCES_CYCLE_DEPENDENCY));
         }
 
         for (String dependency : dependencies) {
@@ -73,17 +68,18 @@ public class DefaultDagResolver implements DagResolver {
         }
 
         if (!taskRegistry.contains(id)) {
-            if (introducesCycle(id, dependencies)) {
-                onTaskCompleted.accept(new CompletedTask(id, CompletionStatus.INTRODUCES_CYCLE_DEPENDENCY));
-                return;
-            }
             taskRegistry.add(id);
+            onStatusUpdate.accept(new StatusUpdate(id, Status.ENQUEUED));
             wireDependencies(id);
             if (!dependencyRegistry.hasDependencies(id)) { //all dependencies completed
-                onTaskReady.accept(id);
+                onStatusUpdate.accept(new StatusUpdate(id, Status.READY));
+            } else {
+                onStatusUpdate.accept(new StatusUpdate(id, Status.WAITING_DEPENDENCIES));
             }
+            return Optional.empty();
         } else {
-            onTaskCompleted.accept(new CompletedTask(id, CompletionStatus.ALREADY_SUBMITTED));
+            onStatusUpdate.accept(new StatusUpdate(id, Status.ALREADY_SUBMITTED));
+            return Optional.of(new StatusUpdate(id, Status.ALREADY_SUBMITTED));
         }
     }
 
@@ -103,7 +99,7 @@ public class DefaultDagResolver implements DagResolver {
     private void wireDependencies(String id) {
         for (String dependencyId : dependencyRegistry.getDependencies(id)) {
             if (!taskRegistry.contains(dependencyId)) {
-                onTaskCompleted.accept(new CompletedTask(id, CompletionStatus.MISSING_DEPENDENCY)); //TODO is it allowed to submit the dependency latter ?
+                onStatusUpdate.accept(new StatusUpdate(id, Status.MISSING_DEPENDENCY)); //TODO is it allowed to submit the dependency latter ?
             } else {
                 dependencyRegistry.addDependency(id, dependencyId);
             }
@@ -137,25 +133,25 @@ public class DefaultDagResolver implements DagResolver {
 
     private void fail(String id, ResolutionStatus resolutionStatus) {
         taskRegistry.remove(id);
-        onTaskCompleted.accept(new CompletedTask(id, resolutionStatus.toCompletionStatus()));
+        onStatusUpdate.accept(new StatusUpdate(id, resolutionStatus.toCompletionStatus()));
 
         for (String dependentId : dependencyRegistry.getAllTaskDependents(id)) {
             if (taskRegistry.contains(dependentId)) {
                 taskRegistry.remove(dependentId);
-                onTaskCompleted.accept(new CompletedTask(dependentId, CompletionStatus.FAILED_DEPENDENCY));
+                onStatusUpdate.accept(new StatusUpdate(dependentId, Status.FAILED_DEPENDENCY));
             }
         }
     }
 
     private void success(String id) {
         taskRegistry.remove(id);
-        onTaskCompleted.accept(new CompletedTask(id, CompletionStatus.SUCCESS));
+        onStatusUpdate.accept(new StatusUpdate(id, Status.SUCCESS));
 
         for (String dependentId : dependencyRegistry.getDependents(id)) {
             dependencyRegistry.removeDependency(dependentId, id);
             if (!dependencyRegistry.hasDependencies(dependentId)) { //all dependencies completed
                 if (taskRegistry.contains(dependentId)) {
-                    onTaskReady.accept(dependentId);
+                    onStatusUpdate.accept(new StatusUpdate(dependentId, Status.READY));
                 }
             }
         }
