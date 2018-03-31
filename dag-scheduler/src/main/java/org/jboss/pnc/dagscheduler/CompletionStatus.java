@@ -17,16 +17,9 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import lombok.Data;
-
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-@Data
-public class CompletedTask {
-
-    private final String taskId;
-
-    private final CompletionStatus status;
-
+public enum CompletionStatus {
+    SUCCESS, FAILED, FAILED_DEPENDENCY, CANCELED, TIME_OUT, ALREADY_SUBMITTED, MISSING_DEPENDENCY, INTRODUCES_CYCLE_DEPENDENCY;
 }

@@ -17,16 +17,30 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import lombok.Data;
-
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-@Data
-public class CompletedTask {
+public enum ResolutionStatus {
 
-    private final String taskId;
+    SUCCESS(true, CompletionStatus.SUCCESS),
+    FAILED(false, CompletionStatus.FAILED),
+    CANCELLED(false, CompletionStatus.CANCELED),
+    TIME_OUT(false, CompletionStatus.TIME_OUT);
 
-    private final CompletionStatus status;
+    private boolean success;
 
+    private CompletionStatus completedStatus;
+
+    ResolutionStatus(boolean success, CompletionStatus completedStatus) {
+        this.success = success;
+        this.completedStatus = completedStatus;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public CompletionStatus toCompletionStatus() {
+        return completedStatus;
+    }
 }

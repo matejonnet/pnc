@@ -30,24 +30,21 @@ import java.util.function.Consumer;
  */
 public interface DagResolver<T extends Serializable> {
 
-    Task<T> submitTask(String id, T data, Set<Task<T>> dependencies);
-
     default Task<T> submitTask(String id, T data) {
         return submitTask(id, data, Collections.emptySet());
     }
 
-    void resolveTask(String id, CompletedTask.Status status);
+    Task<T> submitTask(String id, T data, Set<String> dependencies);
 
-    void resolveTask(Task task, CompletedTask.Status status);
+    void resolveTask(String id, ResolutionStatus resolutionStatus);
 
     int getCount();
 
-    void setOnReadyListener(Consumer<Task<T>> onTaskReady);
+    void setOnReadyListener(Consumer<String> onTaskReady);
 
     void setOnCompleteListener(Consumer<CompletedTask> onTaskCompleted);
 
-    Set<Task<T>> getDependencies(Task<T> task);
+    Set<String> getDependencies(String taskId);
 
-    Set<Task<T>> getDependents(Task<T> a);
-
+    Set<String> getDependents(String taskId);
 }

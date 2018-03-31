@@ -18,9 +18,7 @@
 package org.jboss.pnc.dagscheduler.local;
 
 import org.jboss.pnc.dagscheduler.DependencyRegistry;
-import org.jboss.pnc.dagscheduler.Task;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -29,19 +27,19 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-class DefaultDependencyRegistry<T extends Serializable> implements DependencyRegistry<T> {
+class DefaultDependencyRegistry implements DependencyRegistry {
 
-    private final Map<Task<T>, Set<Task<T>>> dependencies = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> dependencies = new ConcurrentHashMap<>();
 
-    private Set<Task<T>> doGetDependencies(Task<T> task) {
-        return this.dependencies.computeIfAbsent(task, (t) -> new HashSet<>());
+    private Set<String> doGetDependencies(String id) {
+        return this.dependencies.computeIfAbsent(id, (t) -> new HashSet<>());
     }
 
-    private Set<Task<T>> doGetDependents(Task<T> task) {
-        Set<Task<T>> dependents = new HashSet<>();
-        for (Map.Entry<Task<T>, Set<Task<T>>> dependenciesEntry : this.dependencies.entrySet()) {
-            for (Task<T> dependency : dependenciesEntry.getValue()) {
-                if (dependency.equals(task)) {
+    private Set<String> doGetDependents(String id) {
+        Set<String> dependents = new HashSet<>();
+        for (Map.Entry<String, Set<String>> dependenciesEntry : this.dependencies.entrySet()) {
+            for (String dependency : dependenciesEntry.getValue()) {
+                if (dependency.equals(id)) {
                     dependents.add(dependenciesEntry.getKey());
                 }
             }
@@ -50,29 +48,29 @@ class DefaultDependencyRegistry<T extends Serializable> implements DependencyReg
     }
 
     @Override
-    public Set<Task<T>> getDependencies(Task<T> task) {
-        return new HashSet<>(doGetDependencies(task));
+    public Set<String> getDependencies(String id) {
+        return new HashSet<>(doGetDependencies(id));
     }
 
     @Override
-    public Set<Task<T>> getDependents(Task<T> task) {
-        return new HashSet<>(doGetDependents(task));
+    public Set<String> getDependents(String id) {
+        return new HashSet<>(doGetDependents(id));
     }
 
     @Override
-    public boolean addDependency(Task<T> parent, Task<T> child) {
-        doGetDependents(child).add(parent);
-        return doGetDependencies(parent).add(child);
+    public boolean addDependency(String parentId, String childId) {
+        doGetDependents(childId).add(parentId);
+        return doGetDependencies(parentId).add(childId);
     }
 
     @Override
-    public boolean removeDependency(Task<T> parent, Task<T> child) {
-        doGetDependents(child).remove(parent);
-        return doGetDependencies(parent).remove(child);
+    public boolean removeDependency(String parentId, String childId) {
+        doGetDependents(childId).remove(parentId);
+        return doGetDependencies(parentId).remove(childId);
     }
 
     @Override
-    public boolean hasDependencies(Task<T> task) {
-        return getDependencies(task).size() > 0;
+    public boolean hasDependencies(String id) {
+        return getDependencies(id).size() > 0;
     }
 }

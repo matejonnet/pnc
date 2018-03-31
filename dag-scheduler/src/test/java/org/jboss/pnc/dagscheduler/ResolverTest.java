@@ -50,10 +50,10 @@ public class ResolverTest {
     public void shouldEmitAllWhenDependenciesAreResolved() throws Exception {
         final DagResolver<String> resolver = new DefaultDagResolver();
 
-        List<Task> ready = new ArrayList<>();
-        Consumer<Task<String>> onTaskReady = task -> {
-            logger.info("Ready task: {}.", task.getId());
-            ready.add(task);
+        List<String> ready = new ArrayList<>();
+        Consumer<String> onTaskReady = taskId -> {
+            logger.info("Ready task: {}.", taskId);
+            ready.add(taskId);
         };
 
         Consumer<CompletedTask> onTaskCompleted = completedTask -> {
@@ -64,24 +64,24 @@ public class ResolverTest {
         resolver.setOnCompleteListener(onTaskCompleted);
 
         Task<String> a = resolver.submitTask("A", "data");
-        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a)));
-        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b)));
+        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a.getId())));
+        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b.getId())));
         Task<String> d = resolver.submitTask("D", "data");
-        Task<String> e = resolver.submitTask("E", "data", new HashSet<>(Arrays.asList(b,d)));
+        Task<String> e = resolver.submitTask("E", "data", new HashSet<>(Arrays.asList(b.getId(),d.getId())));
 
-        Assert.assertEquals(1, resolver.getDependents(a).size());
-        Assert.assertEquals(1, resolver.getDependencies(b).size());
-        Assert.assertEquals(1, resolver.getDependencies(c).size());
-        Assert.assertEquals(2, resolver.getDependencies(e).size());
+        Assert.assertEquals(1, resolver.getDependents(a.getId()).size());
+        Assert.assertEquals(1, resolver.getDependencies(b.getId()).size());
+        Assert.assertEquals(1, resolver.getDependencies(c.getId()).size());
+        Assert.assertEquals(2, resolver.getDependencies(e.getId()).size());
         Assert.assertEquals(5, resolver.getCount());
 
-        resolver.resolveTask(a.getId(), CompletedTask.Status.DONE);
-        resolver.resolveTask(b.getId(), CompletedTask.Status.DONE);
-        resolver.resolveTask(c.getId(), CompletedTask.Status.DONE);
-        resolver.resolveTask(d.getId(), CompletedTask.Status.DONE);
+        resolver.resolveTask(a.getId(), ResolutionStatus.SUCCESS);
+        resolver.resolveTask(b.getId(), ResolutionStatus.SUCCESS);
+        resolver.resolveTask(c.getId(), ResolutionStatus.SUCCESS);
+        resolver.resolveTask(d.getId(), ResolutionStatus.SUCCESS);
 
         Assert.assertEquals(5, ready.size());
-        Assert.assertTrue(ready.contains(e));
+        Assert.assertTrue(ready.contains(e.getId()));
     }
 
     @Test
@@ -89,11 +89,11 @@ public class ResolverTest {
         final DagResolver<String> resolver = new DefaultDagResolver();
 
         List<CompletedTask> cycles = new ArrayList<>();
-        Consumer<Task<String>> onTaskReady = task -> {
+        Consumer<String> onTaskReady = taskId -> {
         };
 
         Consumer<CompletedTask> onTaskCompleted = completedTask -> {
-            if (completedTask.getStatus().equals(CompletedTask.Status.INTRODUCES_CYCLE_DEPENDENCY)) {
+            if (completedTask.getStatus().equals(CompletionStatus.INTRODUCES_CYCLE_DEPENDENCY)) {
                 cycles.add(completedTask);
             }
         };
@@ -102,12 +102,19 @@ public class ResolverTest {
         resolver.setOnCompleteListener(onTaskCompleted);
 
         Task<String> a = resolver.submitTask("A", "data");
-        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a)));
-        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b)));
-        Task<String> a1 = resolver.submitTask("A", "data", new HashSet<>(Arrays.asList(c)));
+        Task<String> b = resolver.submitTask("B", "data", new HashSet<>(Arrays.asList(a.getId())));
+        Task<String> c = resolver.submitTask("C", "data", new HashSet<>(Arrays.asList(b.getId())));
+        Task<String> a1 = resolver.submitTask("A", "data", new HashSet<>(Arrays.asList(c.getId())));
 
         Assert.assertEquals(1, cycles.size());
-        Assert.assertEquals("A", cycles.get(0).getTask().getId());
+        Assert.assertEquals("A", cycles.get(0).getTaskId());
+
+        Task<String> d1 = resolver.submitTask("D1", "data", new HashSet<String>(Arrays.asList("D2")));
+        Task<String> d2 = resolver.submitTask("D2", "data", new HashSet<String>(Arrays.asList("D1")));
+
+        Assert.assertEquals(2, cycles.size());
+        Assert.assertEquals("D2", cycles.get(1).getTaskId());
+
 
     }
 

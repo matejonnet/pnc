@@ -17,21 +17,20 @@
  */
 package org.jboss.pnc.dagscheduler;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
  */
-public interface DependencyRegistry<T extends Serializable> {
+public interface DependencyRegistry {
 
-    Set<Task<T>> getDependencies(Task<T> task);
+    Set<String> getDependencies(String id);
 
-    Set<Task<T>> getDependents(Task<T> task);
+    Set<String> getDependents(String id);
 
-    boolean addDependency(Task<T> parent, Task<T> child);
+    boolean addDependency(String parentId, String childId);
 
-    boolean removeDependency(Task<T> parent, Task<T> child);
+    boolean removeDependency(String parentId, String childId);
 
-    boolean hasDependencies(Task<T> task);
+    boolean hasDependencies(String id);
 }
