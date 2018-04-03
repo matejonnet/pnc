@@ -45,11 +45,23 @@ class DefaultOperationLogger implements OperationLogger {
 
     private final String operation;
 
-    public DefaultOperationLogger(Sink sink, String component, String operation) {
+    private final Consumer<Exception> exceptionHandler;
+
+    private final Consumer<Long> successHandler;
+
+    public DefaultOperationLogger(
+            Sink sink,
+            String component,
+            String operation,
+            Consumer<Long> successHandler,
+            Consumer<Exception> exceptionHandler) {
         this.sink = sink;
         this.component = component;
         this.operation = operation;
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+        this.successHandler = successHandler;
+        this.exceptionHandler = exceptionHandler;
     }
 
     @Override
@@ -74,12 +86,8 @@ class DefaultOperationLogger implements OperationLogger {
             messageMap.put("expires", "");
         }
 
-        Consumer<Exception> exceptionHandler = (e) -> {
-            //TODO stop the application
-            logger.error("Failed to deliver operation log!", e);
-        };
         try {
-            sink.send(objectMapper.writeValueAsString(messageMap), exceptionHandler);
+            sink.send(objectMapper.writeValueAsString(messageMap), successHandler, exceptionHandler);
         } catch (JsonProcessingException e) {
             logger.error("Cannot prepare log message.", e);
         }

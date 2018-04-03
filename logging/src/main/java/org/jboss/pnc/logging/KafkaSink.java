@@ -56,6 +56,11 @@ public class KafkaSink implements Sink {
 
     @Override
     public void send(String message, Consumer<Exception> exceptionHandler) {
+        send(message, (timestamp) -> {}, exceptionHandler);
+    }
+
+    @Override
+    public void send(String message, Consumer<Long> successHandler, Consumer<Exception> exceptionHandler) {
         ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, message);
         if (exceptionHandler == null) {
             kafkaProducer.send(producerRecord);
@@ -65,6 +70,7 @@ public class KafkaSink implements Sink {
                     exceptionHandler.accept(exception);
                 } else {
                     logger.trace("Message sent to Kafka. Partition:{}, timestamp {}.", metadata.partition(), metadata.timestamp());
+                    successHandler.accept(metadata.timestamp());
                 }
             };
             kafkaProducer.send(producerRecord, callback);
@@ -76,6 +82,11 @@ public class KafkaSink implements Sink {
         ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, message);
         Future<RecordMetadata> future = kafkaProducer.send(producerRecord);
         future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void close(long timeout, TimeUnit timeUnit) throws IOException {
+        kafkaProducer.close(timeout, timeUnit);
     }
 
     @Override

@@ -37,6 +37,11 @@ public class SinkMock implements Sink {
     }
 
     @Override
+    public void send(String message, Consumer<Long> successHandler, Consumer<Exception> exceptionHandler) {
+        messages.add(message);
+    }
+
+    @Override
     public void send(String message, long timeoutMillis) throws TimeoutException, ExecutionException, InterruptedException {
 
     }

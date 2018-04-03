@@ -144,6 +144,4 @@ public class WaitForDependencyBuildTest extends AbstractDependentBuildTest {
             return false;
         }
     }
-
-
 }

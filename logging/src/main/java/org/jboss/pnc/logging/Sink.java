@@ -18,7 +18,9 @@
 package org.jboss.pnc.logging;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
@@ -32,8 +34,20 @@ public interface Sink extends Closeable {
      */
     void send(String message, Consumer<Exception> exceptionHandler);
 
+    void send(String message, Consumer<Long> successHandler, Consumer<Exception> exceptionHandler);
+
     /**
      * Blocking send.
      */
     void send(String message, long timeoutMillis) throws TimeoutException, ExecutionException, InterruptedException;
+
+    void close(long timeout, TimeUnit timeUnit) throws IOException;
+
+    /**
+     * Before calling close, drain should be called to wait that all async messages are processed.
+     *
+     * @throws IOException
+     */
+    @Override
+    void close() throws IOException;
 }
