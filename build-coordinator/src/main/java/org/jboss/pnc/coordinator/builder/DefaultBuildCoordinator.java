@@ -17,13 +17,12 @@
  */
 package org.jboss.pnc.coordinator.builder;
 
+import org.jboss.pnc.common.concurrent.MDCExecutors;
+import org.jboss.pnc.common.concurrent.NamedThreadFactory;
 import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.common.monitor.PullingMonitor;
-import org.jboss.pnc.common.util.NamedThreadFactory;
 import org.jboss.pnc.coordinator.BuildCoordinationException;
 import org.jboss.pnc.coordinator.builder.datastore.DatastoreAdapter;
-import org.jboss.pnc.logging.OperationLogger;
-import org.jboss.pnc.logging.OperationLoggerFactory;
 import org.jboss.pnc.model.BuildConfigSetRecord;
 import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationAudited;
@@ -61,7 +60,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -77,6 +75,7 @@ import static org.jboss.pnc.common.util.CollectionUtils.hasCycle;
 public class DefaultBuildCoordinator implements BuildCoordinator {
 
     private final Logger log = LoggerFactory.getLogger(DefaultBuildCoordinator.class);
+    private static final Logger userLog = LoggerFactory.getLogger("org.jboss.pnc._userlog_.build-process-status-update");
 
     private SystemConfig systemConfig;
     private DatastoreAdapter datastoreAdapter;
@@ -88,8 +87,6 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
     private BuildQueue buildQueue;
 
     private BuildTasksInitializer buildTasksInitializer;
-
-    private OperationLogger statusUpdateOperationLogger = OperationLoggerFactory.getLogger("build-process-status-update");
 
     @Deprecated
     public DefaultBuildCoordinator(){} //workaround for CDI constructor parameter injection
@@ -349,9 +346,7 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
             task.setStatusDescription(statusDescription);
         }
 
-        String context = task.getContentId();
-        Date expires = task.getBuildOptions().isTemporaryBuild() ? systemConfig.getTemporalBuildExpireDate() : null;
-        statusUpdateOperationLogger.info(context, expires, "Build status updated to {}; previous: {}", status, oldStatus);
+        userLog.info("Build status updated to {}; previous: {}", status, oldStatus);
 
         buildStatusChangedEventNotifier.fire(buildStatusChanged);
         log.debug("Fired buildStatusChangedEventNotifier after task {} status update to {}.", task.getId(), status);
@@ -469,9 +464,7 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
                             RepourResult repourResult = buildResult.getRepourResult().get();
                             if (repourResult.getCompletionStatus().isFailed()) {
                                 exception = new ProcessException("Repour completed with system error.");
-                                log.debug("[buildTaskId: {}] Storing build result with system error from repour: {}.",
-                                        buildTaskId,
-                                        repourResult.getLog());
+                                log.debug("[buildTaskId: {}] Storing build result with system error from repour.", buildTaskId);
                             } else {
                                 exception = new ProcessException("Build completed with system error but no exception.");
                                 log.error("[buildTaskId: {}] Storing build result with system_error and missing exception.", buildTaskId);
@@ -615,7 +608,7 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
     private void startThreads() {
         int threadPoolSize = 1;
         threadPoolSize = systemConfig.getCoordinatorThreadPoolSize();
-        ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize, new NamedThreadFactory("build-coordinator"));
+        ExecutorService executorService = MDCExecutors.newFixedThreadPool(threadPoolSize, new NamedThreadFactory("build-coordinator"));
         for (int i = 0; i < threadPoolSize; i++) {
             executorService.execute(this::takeAndProcessTask);
         }

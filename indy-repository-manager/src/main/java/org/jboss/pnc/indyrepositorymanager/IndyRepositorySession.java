@@ -37,8 +37,6 @@ import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
 import org.commonjava.maven.atlas.ident.util.ArtifactPathInfo;
 import org.jboss.pnc.common.json.moduleconfig.MavenRepoDriverModuleConfig.IgnoredPathSuffixes;
 import org.jboss.pnc.common.json.moduleconfig.MavenRepoDriverModuleConfig.InternalRepoPatterns;
-import org.jboss.pnc.logging.OperationLogger;
-import org.jboss.pnc.logging.OperationLoggerFactory;
 import org.jboss.pnc.model.Artifact;
 import org.jboss.pnc.model.TargetRepository;
 import org.jboss.pnc.spi.coordinator.CompletionStatus;
@@ -103,7 +101,7 @@ public class IndyRepositorySession implements RepositorySession {
 
     private String buildPromotionGroup;
 
-    private final OperationLogger operationLogger = OperationLoggerFactory.getLogger("build-executor");
+    private static final Logger userLog = LoggerFactory.getLogger("org.jboss.pnc._userlog_.build-executor");
 
     public IndyRepositorySession(Indy indy,
             String buildContentId,
@@ -195,9 +193,7 @@ public class IndyRepositorySession implements RepositorySession {
         } catch (RepositoryManagerException rme) {
             status = CompletionStatus.FAILED;
             log = rme.getMessage();
-
-            Date expires = isTempBuild ? temporalBuildExpireDate : null;
-            operationLogger.error(buildContentId, expires, "Artifact promotion failed. Promotion validation error(s): {}", log);
+            userLog.error("Artifact promotion failed. Promotion validation error(s): {}", log);
         }
 
         return new IndyRepositoryManagerResult(uploads, downloads, buildContentId, status);

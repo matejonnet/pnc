@@ -17,11 +17,7 @@
  */
 package org.jboss.pnc.coordinator.builder.datastore;
 
-import org.jboss.logging.Logger;
-import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.coordinator.BuildCoordinationException;
-import org.jboss.pnc.logging.OperationLogger;
-import org.jboss.pnc.logging.OperationLoggerFactory;
 import org.jboss.pnc.model.Artifact;
 import org.jboss.pnc.model.BuildConfigSetRecord;
 import org.jboss.pnc.model.BuildConfiguration;
@@ -41,6 +37,8 @@ import org.jboss.pnc.spi.environment.EnvironmentDriverResult;
 import org.jboss.pnc.spi.executor.BuildExecutionConfiguration;
 import org.jboss.pnc.spi.repositorymanager.RepositoryManagerResult;
 import org.jboss.pnc.spi.repour.RepourResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -65,11 +63,8 @@ public class DatastoreAdapter {
 
     private Datastore datastore;
 
-    private static final Logger log = Logger.getLogger(DatastoreAdapter.class);
-
-    private final OperationLogger buildResultOperationLogger = OperationLoggerFactory.getLogger("build-result");
-
-    private SystemConfig systemConfig;
+    private static final Logger log = LoggerFactory.getLogger(DatastoreAdapter.class);
+    private static final Logger userLog = LoggerFactory.getLogger("org.jboss.pnc._userlog_.build-result");
 
     // needed for EJB/CDI
     @Deprecated
@@ -77,9 +72,8 @@ public class DatastoreAdapter {
     }
 
     @Inject
-    public DatastoreAdapter(Datastore datastore, SystemConfig systemConfig) {
+    public DatastoreAdapter(Datastore datastore) {
         this.datastore = datastore;
-        this.systemConfig = systemConfig;
     }
 
     public BuildConfigSetRecord saveBuildConfigSetRecord(BuildConfigSetRecord buildConfigSetRecord) throws DatastoreException {
@@ -118,7 +112,7 @@ public class DatastoreAdapter {
                 buildRecordBuilder.executionRootName(repourResult.getExecutionRootName());
                 buildRecordBuilder.executionRootVersion(repourResult.getExecutionRootVersion());
             } else {
-                buildResultOperationLogger.warn(buildTask.getContentId(), getLogExpires(buildTask), "Missing Repour Result!");
+                userLog.warn("Missing Repour Result!");
             }
 
             if (buildResult.getBuildDriverResult().isPresent()) {
@@ -170,7 +164,7 @@ public class DatastoreAdapter {
                     buildRecordStatus = CANCELLED;
                 } else if (buildResult.getCompletionStatus().equals(CompletionStatus.TIMED_OUT)) {
                     buildRecordStatus = SYSTEM_ERROR;
-                    buildResultOperationLogger.warn(buildTask.getContentId(), getLogExpires(buildTask), "Operation TIMED-OUT.");
+                    userLog.warn("Operation TIMED-OUT.");
                 }
             }
 
@@ -186,16 +180,12 @@ public class DatastoreAdapter {
                 return;
             }
 
-            log.debugf("Storing results of buildTask [%s] to datastore.", buildTask.getId());
+            log.debug("Storing results of buildTask [{}] to datastore.", buildTask.getId());
             datastore.storeCompletedBuild(buildRecordBuilder);
-            buildResultOperationLogger.info(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), "Successfully completed.");
+            userLog.info("Successfully completed.");
         } catch (Exception e) {
             storeResult(buildTask, Optional.of(buildResult), e);
         }
-    }
-
-    private Date getLogExpires(BuildTask buildTask) {
-        return buildTask.getBuildOptions().isTemporaryBuild() ? systemConfig.getTemporalBuildExpireDate() : null;
     }
 
     /**
@@ -210,8 +200,6 @@ public class DatastoreAdapter {
         BuildRecord.Builder buildRecordBuilder = initBuildRecordBuilder(buildTask);
         buildRecordBuilder.status(SYSTEM_ERROR);
 
-        StringBuilder errorLog = new StringBuilder();
-
         buildResult.ifPresent(result -> {
             result.getRepourResult().ifPresent(repourResult -> {
                 buildRecordBuilder.executionRootName(repourResult.getExecutionRootName());
@@ -219,9 +207,7 @@ public class DatastoreAdapter {
             });
         });
 
-        buildResultOperationLogger.error(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), "Build status: {}", getBuildStatus(buildResult));
-        buildResultOperationLogger.error(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), "Caught exception: ", e);
-
+        userLog.error("Build status: {}.", getBuildStatus(buildResult));
         log.debug("Storing ERROR result of buildTask.getBuildConfigurationAudited().getName() to datastore.",  e);
         datastore.storeCompletedBuild(buildRecordBuilder);
     }
@@ -238,10 +224,9 @@ public class DatastoreAdapter {
         BuildRecord.Builder buildRecordBuilder = initBuildRecordBuilder(buildTask);
         buildRecordBuilder.status(REJECTED);
 
-        //buildRecordBuilder.buildLog(buildTask.getStatusDescription()); //TODO switch to old school ?
-        buildResultOperationLogger.warn(buildTask.getContentId(), systemConfig.getTemporalBuildExpireDate(), buildTask.getStatusDescription());
+        userLog.warn(buildTask.getStatusDescription());
 
-        log.debugf("Storing REJECTED build of %s to datastore. Reason: %s", buildTask.getBuildConfigurationAudited().getName(), buildTask.getStatusDescription());
+        log.debug("Storing REJECTED build of {} to datastore. Reason: {}", buildTask.getBuildConfigurationAudited().getName(), buildTask.getStatusDescription());
         datastore.storeCompletedBuild(buildRecordBuilder);
     }
 

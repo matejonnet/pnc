@@ -22,10 +22,11 @@ import org.jboss.pnc.buildagent.api.TaskStatusUpdateEvent;
 import org.jboss.pnc.buildagent.client.BuildAgentClient;
 import org.jboss.pnc.buildagent.client.BuildAgentClientException;
 import org.jboss.pnc.common.Configuration;
+import org.jboss.pnc.common.concurrent.MDCExecutors;
+import org.jboss.pnc.common.concurrent.NamedThreadFactory;
 import org.jboss.pnc.common.json.ConfigurationParseException;
 import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.common.json.moduleprovider.PncConfigProvider;
-import org.jboss.pnc.common.util.NamedThreadFactory;
 import org.jboss.pnc.model.BuildStatus;
 import org.jboss.pnc.spi.builddriver.BuildDriver;
 import org.jboss.pnc.spi.builddriver.CompletedBuild;
@@ -50,7 +51,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -94,7 +94,7 @@ public class TermdBuildDriver implements BuildDriver { //TODO rename class
             logger.warn("Unable parse config. Using defaults.");
         }
 
-        executor = Executors.newFixedThreadPool(threadPoolSize, new NamedThreadFactory("termd-build-driver"));
+        executor = MDCExecutors.newFixedThreadPool(threadPoolSize, new NamedThreadFactory("termd-build-driver"));
     }
 
     @Override
