@@ -44,7 +44,9 @@ public class MDCExecutorTest {
         logger.info("Running ...");
 
         AtomicReference<String> context = new AtomicReference<>();
+        AtomicReference<String> modifiedContext = new AtomicReference<>();
         AtomicReference<Future> waitToComplete = new AtomicReference<>();
+        AtomicReference<Future> modifiedWaitToComplete = new AtomicReference<>();
 
         Runnable taskNoContext = () -> {
             logger.info("no-context");
@@ -59,6 +61,12 @@ public class MDCExecutorTest {
             context.set(MDC.get("ctx"));
         };
 
+        Runnable taskHasModifiedContext = () -> {
+            sleep(200);
+            logger.info("has-modified-context");
+            modifiedContext.set(MDC.get("ctx"));
+        };
+
         Runnable taskSetContext = () -> {
             logger.info("T1 in");
             Map<String, String> map = new HashMap<>();
@@ -66,6 +74,12 @@ public class MDCExecutorTest {
             MDC.setContextMap(map);
             Future submit = executorService.submit(taskHasContext);
             waitToComplete.set(submit);
+
+            map.put("ctx", "firstValueModified");
+            MDC.setContextMap(map);
+            Future submitModified = executorService.submit(taskHasModifiedContext);
+            modifiedWaitToComplete.set(submitModified);
+
             logger.info("T1 out");
         };
 
@@ -84,11 +98,13 @@ public class MDCExecutorTest {
         submit.get();
         submit2.get();
         waitToComplete.get().get();
+        modifiedWaitToComplete.get().get();
 
         executorServiceDefault.shutdown();
         executorService.shutdown();
 
         Assert.assertEquals("firstValue", context.get());
+        Assert.assertEquals("firstValueModified", modifiedContext.get());
     }
 
     private void sleep(int millis) {

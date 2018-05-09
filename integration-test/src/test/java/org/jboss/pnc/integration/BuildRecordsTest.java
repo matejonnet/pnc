@@ -191,8 +191,6 @@ public class BuildRecordsTest {
 
         BuildRecord buildRecord1 = BuildRecord.Builder.newBuilder()
                 .id(datastore.getNextBuildRecordId())
-                .buildLog("test build complete")
-                .repourLog("alignment done")
                 .status(BuildStatus.SUCCESS)
                 .buildConfigurationAudited(buildConfigurationAudited)
                 .submitTime(Date.from(Instant.now()))
@@ -213,8 +211,6 @@ public class BuildRecordsTest {
 
         BuildRecord buildRecord2 = BuildRecord.Builder.newBuilder()
                 .id(datastore.getNextBuildRecordId())
-                .buildLog("test build complete")
-                .repourLog("alignment done")
                 .status(BuildStatus.SUCCESS)
                 .buildConfigurationAudited(buildConfigurationAudited)
                 .submitTime(Date.from(Instant.now()))
@@ -235,8 +231,6 @@ public class BuildRecordsTest {
 
         BuildRecord buildRecordWithArtifacts = BuildRecord.Builder.newBuilder()
                 .id(datastore.getNextBuildRecordId())
-                .buildLog("test build completed and has some artifacts")
-                .repourLog("alignment done")
                 .status(BuildStatus.SUCCESS)
                 .buildConfigurationAudited(buildConfigurationAudited)
                 .submitTime(Date.from(Instant.now()))

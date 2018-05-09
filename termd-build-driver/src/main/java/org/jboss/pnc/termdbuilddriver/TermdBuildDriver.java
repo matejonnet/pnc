@@ -298,7 +298,7 @@ public class TermdBuildDriver implements BuildDriver { //TODO rename class
             }
 
             CompletedBuild completedBuild = new DefaultCompletedBuild(
-                    termdRunningBuild.getRunningEnvironment(), getBuildStatus(completionStatus), stringBuffer.toString());
+                    termdRunningBuild.getRunningEnvironment(), getBuildStatus(completionStatus));
 
             future.complete(completedBuild);
         }, executor);

@@ -21,13 +21,10 @@ package org.jboss.pnc.rest.restmodel.bpm;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jboss.pnc.common.util.StringUtils;
-import org.jboss.pnc.model.Artifact;
-import org.jboss.pnc.model.BuildStatus;
+import org.jboss.pnc.common.json.JsonOutputConverterMapper;
 import org.jboss.pnc.rest.restmodel.BuildDriverResultRest;
 import org.jboss.pnc.rest.restmodel.BuildExecutionConfigurationRest;
 import org.jboss.pnc.rest.restmodel.RepositoryManagerResultRest;
-import org.jboss.pnc.common.json.JsonOutputConverterMapper;
 import org.jboss.pnc.spi.BuildResult;
 import org.jboss.pnc.spi.builddriver.BuildDriverResult;
 import org.jboss.pnc.spi.coordinator.CompletionStatus;
@@ -42,8 +39,6 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
@@ -63,10 +58,6 @@ public class BuildResultRest extends BpmNotificationRest implements Serializable
     @Getter
     @Setter(onMethod=@__({@Deprecated}))
     private ProcessException processException;
-
-    @Getter
-    @Setter(onMethod=@__({@Deprecated}))
-    private String processLog;
 
     @Getter
     @Setter(onMethod=@__({@Deprecated}))
@@ -96,7 +87,6 @@ public class BuildResultRest extends BpmNotificationRest implements Serializable
 
         completionStatus = buildResult.getCompletionStatus();
         processException = buildResult.getProcessException().orElse(null);
-        processLog = buildResult.getProcessLog();
 
         if (buildResult.getBuildExecutionConfiguration().isPresent()) {
             BuildExecutionConfiguration bec = buildResult.getBuildExecutionConfiguration().get();
@@ -137,7 +127,6 @@ public class BuildResultRest extends BpmNotificationRest implements Serializable
         return new BuildResult(
                 completionStatus,
                 ofNullable(processException),
-                processLog,
                 ofNullable(buildExecutionConfiguration),
                 ofNullable(buildDriverResult),
                 ofNullable(repositoryManagerResult),
@@ -155,7 +144,6 @@ public class BuildResultRest extends BpmNotificationRest implements Serializable
         return "BuildResultRest{" +
                 "completionStatus=" + completionStatus +
                 ", processException=" + processException +
-                ", processLog='" + StringUtils.trim(processLog, 100) + '\'' +
                 ", buildExecutionConfiguration=" + buildExecutionConfiguration +
                 ", buildDriverResult=" + (buildDriverResult == null ? null : buildDriverResult.toStringLimited()) +
                 ", repositoryManagerResult=" + (repositoryManagerResult == null ? null : repositoryManagerResult.toStringLimited()) +

@@ -88,7 +88,6 @@ public class TermdBuildDriverTest extends AbstractLocalBuildAgentTest {
         latch.await();
         //then
         assertThat(buildResult.get().getBuildResult()).isNotNull();
-        assertThat(buildResult.get().getBuildResult().getBuildLog()).isNotEmpty();
         assertThat(Files.exists(localEnvironmentPointer.getWorkingDirectory())).isTrue();
         assertThat(Files.exists(localEnvironmentPointer.getWorkingDirectory().resolve(dirName))).isTrue();
     }
@@ -126,7 +125,6 @@ public class TermdBuildDriverTest extends AbstractLocalBuildAgentTest {
         latch.await();
 
         //then
-        assertThat(buildResult.get().getBuildResult().getBuildLog()).doesNotContain(logEnd);
         assertThat(buildResult.get().getBuildResult().getBuildStatus()).isEqualTo(CANCELLED);
     }
 
@@ -173,8 +171,6 @@ public class TermdBuildDriverTest extends AbstractLocalBuildAgentTest {
 
         //then
         assertThat(buildResult.get().getBuildResult()).isNotNull();
-        assertThat(buildResult.get().getBuildResult().getBuildLog()).contains("sh " + getWorkingDirectory());
-        assertThat(buildResult.get().getBuildResult().getBuildLog()).doesNotContain(logEnd);
         assertThat(buildResult.get().getBuildResult().getBuildStatus()).isEqualTo(CANCELLED);
     }
 

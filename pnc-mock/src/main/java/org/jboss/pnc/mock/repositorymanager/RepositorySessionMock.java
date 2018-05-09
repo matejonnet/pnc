@@ -99,11 +99,6 @@ public class RepositorySessionMock implements RepositorySession {
             }
 
             @Override
-            public String getLog() {
-                return "";
-            }
-
-            @Override
             public CompletionStatus getCompletionStatus() {
                 return CompletionStatus.SUCCESS;
             }

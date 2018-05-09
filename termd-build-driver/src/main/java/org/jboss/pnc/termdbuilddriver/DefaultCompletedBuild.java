@@ -31,17 +31,15 @@ public class DefaultCompletedBuild implements CompletedBuild {
 
     private RunningEnvironment runningEnvironment;
     private BuildStatus buildStatus;
-    private String buildLog;
 
-    public DefaultCompletedBuild(RunningEnvironment runningEnvironment, BuildStatus buildStatus, String buildLog) {
+    public DefaultCompletedBuild(RunningEnvironment runningEnvironment, BuildStatus buildStatus) {
         this.runningEnvironment = runningEnvironment;
         this.buildStatus = buildStatus;
-        this.buildLog = buildLog;
     }
 
     @Override
     public BuildDriverResult getBuildResult() throws BuildDriverException {
-        return new DefaultBuildDriverResult(buildLog, buildStatus);
+        return new DefaultBuildDriverResult(buildStatus);
     }
 
     @Override

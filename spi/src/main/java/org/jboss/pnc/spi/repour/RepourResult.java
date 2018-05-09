@@ -53,7 +53,6 @@ public class RepourResult implements Serializable {
     public String toString() {
         return "RepourResult{" +
                 "completionStatus=" + completionStatus +
-                ", log='" + log + '\'' +
                 ", executionRootName='" + executionRootName + '\'' +
                 ", executionRootVersion='" + executionRootVersion + '\'' +
                 '}';

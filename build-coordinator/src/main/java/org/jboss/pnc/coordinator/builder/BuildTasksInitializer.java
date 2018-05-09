@@ -25,6 +25,7 @@ import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.model.ProductMilestone;
 import org.jboss.pnc.model.User;
+import org.jboss.pnc.model.utils.ContentIdentityManager;
 import org.jboss.pnc.spi.BuildOptions;
 import org.jboss.pnc.spi.coordinator.BuildSetTask;
 import org.jboss.pnc.spi.coordinator.BuildTask;
@@ -32,9 +33,13 @@ import org.jboss.pnc.spi.datastore.DatastoreException;
 import org.jboss.pnc.spi.exception.CoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
+import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -156,6 +161,13 @@ public class BuildTasksInitializer {
             BuildConfigurationAudited buildConfigAudited =
                     datastoreAdapter.getLatestBuildConfigurationAudited(buildConfig.getId());
 
+            String buildContentId = ContentIdentityManager.getBuildContentId(buildConfigAudited.getName());
+            Map<String, String> context = new HashMap<>();
+            context.put("buildContentId", buildContentId);
+            context.put("temporaryBuild", "false"); //TODO
+            context.put("expires", Instant.now().plusSeconds(3600*24*14).toString()); //TODO
+            MDC.setContextMap(context);
+
             Optional<BuildTask> taskOptional = alreadySubmittedBuildTasks.stream()
                     .filter(bt -> bt.getBuildConfigurationAudited().equals(buildConfigAudited))
                     .findAny();
@@ -173,7 +185,8 @@ public class BuildTasksInitializer {
                         buildTaskIdProvider.get(),
                         buildSetTask,
                         buildSetTask.getStartTime(),
-                        productMilestone);
+                        productMilestone,
+                        buildContentId);
                 log.debug("Created new buildTask {} for BuildConfigurationAudited {}.", buildTask, buildConfigAudited);
             }
 

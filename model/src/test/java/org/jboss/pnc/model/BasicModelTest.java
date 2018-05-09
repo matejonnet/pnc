@@ -136,7 +136,6 @@ public class BasicModelTest extends AbstractModelTest {
         BuildRecord buildRecord1 = BuildRecord.Builder.newBuilder()
                 .id(1)
                 .buildConfigurationAudited(buildConfigAud)
-                .buildLog("Build Completed.")
                 .buildContentId("foo")
                 .submitTime(Date.from(Instant.now()))
                 .startTime(Date.from(Instant.now()))
@@ -205,7 +204,6 @@ public class BasicModelTest extends AbstractModelTest {
         BuildConfigurationAudited buildConfigAud = findBuildConfigurationAudited(em);
 
         BuildRecord buildRecord = BuildRecord.Builder.newBuilder().id(2).buildConfigurationAudited(buildConfigAud)
-                .buildLog("Bulid Complete")
                 .buildContentId("foo")
                 .submitTime(Date.from(Instant.now()))
                 .startTime(Date.from(Instant.now()))

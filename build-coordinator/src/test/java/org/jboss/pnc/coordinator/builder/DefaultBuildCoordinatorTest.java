@@ -114,7 +114,7 @@ public class DefaultBuildCoordinatorTest {
         sshCredentials.setCommand(RandomStringUtils.randomAlphabetic(30));
         sshCredentials.setPassword(RandomStringUtils.randomAlphabetic(30));
 
-        when(buildResult.getEnvironmentDriverResult()).thenReturn(Optional.of(new EnvironmentDriverResult(CompletionStatus.FAILED, "", Optional.of(sshCredentials))));
+        when(buildResult.getEnvironmentDriverResult()).thenReturn(Optional.of(new EnvironmentDriverResult(CompletionStatus.FAILED, Optional.of(sshCredentials))));
 
         when(buildResult.getRepourResult()).thenReturn(Optional.of(RepourResultMock.mock()));
 
@@ -183,7 +183,8 @@ public class DefaultBuildCoordinatorTest {
                 1,
                 null,
                 new Date(),
-                null
+                null,
+                "context-id"
         );
 
         buildTask.setStatus(BuildCoordinationStatus.DONE);

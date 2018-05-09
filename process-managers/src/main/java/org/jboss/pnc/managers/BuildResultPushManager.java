@@ -209,12 +209,14 @@ public class BuildResultPushManager {
 
     private void addLogs(BuildRecord buildRecord, Set<Logfile> logs) {
         if (buildRecord.getBuildLogSize() != null && buildRecord.getBuildLogSize() > 0) {
-            logs.add(new Logfile("build.log", getBuildLogPath(buildRecord.getId()), buildRecord.getBuildLogSize(), buildRecord.getBuildLogMd5()));
+            //TODO brewPushLogs !!!
+            //logs.add(new Logfile("build.log", getBuildLogPath(buildRecord.getId()), buildRecord.getBuildLogSize(), buildRecord.getBuildLogMd5()));
         } else {
             logger.warn("Missing build log for BR.id: {}.", buildRecord.getId());
         }
         if (buildRecord.getRepourLogSize() != null && buildRecord.getRepourLogSize() > 0) {
-            logs.add(new Logfile("repour.log", getRepourLogPath(buildRecord.getId()), buildRecord.getRepourLogSize(), buildRecord.getRepourLogMd5()));
+            //TODO brewPushLogs !!!
+            //logs.add(new Logfile("repour.log", getRepourLogPath(buildRecord.getId()), buildRecord.getRepourLogSize(), buildRecord.getRepourLogMd5()));
         } else {
             logger.warn("Missing repour log for BR.id: {}.", buildRecord.getId());
         }

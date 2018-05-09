@@ -28,7 +28,6 @@ public class RepourResultMock {
     public static RepourResult mock() {
         return new RepourResult(
                 CompletionStatus.SUCCESS,
-                "Some log from Repour.",
                 "rootName",
                 "rootVersion"
         );

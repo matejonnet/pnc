@@ -40,9 +40,6 @@ public class BuildResult {
     private final Optional<ProcessException> processException;
 
     @Getter
-    private final String processLog;
-
-    @Getter
     private final Optional<BuildExecutionConfiguration> buildExecutionConfiguration;
 
     @Getter
@@ -62,14 +59,12 @@ public class BuildResult {
 
     public BuildResult(CompletionStatus completionStatus,
             Optional<ProcessException> processException,
-            String processLog,
             Optional<BuildExecutionConfiguration> buildExecutionConfiguration,
             Optional<BuildDriverResult> buildDriverResult,
             Optional<RepositoryManagerResult> repositoryManagerResult,
             Optional<EnvironmentDriverResult> environmentDriverResult, Optional<RepourResult> repourResult) {
         this.completionStatus = completionStatus;
         this.processException = processException;
-        this.processLog = processLog;
         this.buildExecutionConfiguration = buildExecutionConfiguration;
         this.buildDriverResult = buildDriverResult;
         this.repositoryManagerResult = repositoryManagerResult;

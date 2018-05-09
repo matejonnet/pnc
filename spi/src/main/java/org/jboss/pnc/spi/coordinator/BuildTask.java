@@ -23,7 +23,6 @@ import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.ProductMilestone;
 import org.jboss.pnc.model.User;
-import org.jboss.pnc.model.utils.ContentIdentityManager;
 import org.jboss.pnc.spi.BuildCoordinationStatus;
 import org.jboss.pnc.spi.BuildOptions;
 import org.slf4j.Logger;
@@ -85,7 +84,8 @@ public class BuildTask {
                       BuildSetTask buildSetTask,
                       int id,
                       Integer buildConfigSetRecordId,
-                      ProductMilestone productMilestone) {
+                      ProductMilestone productMilestone,
+                      String contentId) {
 
         this.id = id;
         this.buildConfiguration = buildConfiguration;
@@ -97,7 +97,7 @@ public class BuildTask {
         this.buildSetTask = buildSetTask;
         this.buildConfigSetRecordId = buildConfigSetRecordId;
         this.productMilestone = productMilestone;
-        this.contentId = ContentIdentityManager.getBuildContentId(buildConfiguration.getName());
+        this.contentId = contentId;
 
     }
 
@@ -257,7 +257,8 @@ public class BuildTask {
                                   int buildTaskId,
                                   BuildSetTask buildSetTask,
                                   Date submitTime,
-                                  ProductMilestone productMilestone) {
+                                  ProductMilestone productMilestone,
+                                  String contentId) {
 
         Integer buildConfigSetRecordId = null;
         if (buildSetTask != null) {
@@ -274,7 +275,8 @@ public class BuildTask {
                 buildSetTask,
                 buildTaskId,
                 buildConfigSetRecordId,
-                productMilestone);
+                productMilestone,
+                contentId);
     }
 
 

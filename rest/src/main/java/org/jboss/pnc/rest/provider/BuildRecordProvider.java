@@ -322,20 +322,13 @@ public class BuildRecordProvider extends AbstractProvider<BuildRecord, BuildReco
     }
 
     public String getBuildRecordLog(Integer id) {
-        BuildRecord buildRecord = ((BuildRecordRepository) repository).findByIdFetchAllProperties(id);
-        if (buildRecord != null)
-            return buildRecord.getBuildLog();
-        else
-            return null;
+        //TODO ?
+        return null;
     }
 
     public String getBuildRecordRepourLog(Integer id) {
-        BuildRecord buildRecord = ((BuildRecordRepository) repository).findByIdFetchAllProperties(id);
-        if (buildRecord != null) {
-            return buildRecord.getRepourLog();
-        } else {
-            return null;
-        }
+        //TODO ?
+        return null;
     }
 
     public StreamingOutput getLogsForBuild(String buildRecordLog) {

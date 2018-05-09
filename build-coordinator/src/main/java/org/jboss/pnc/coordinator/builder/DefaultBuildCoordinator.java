@@ -283,7 +283,7 @@ public class DefaultBuildCoordinator implements BuildCoordinator {
         BuildResult result = new BuildResult(
                 CompletionStatus.CANCELLED,
                 Optional.empty(),
-                "", Optional.empty(),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),

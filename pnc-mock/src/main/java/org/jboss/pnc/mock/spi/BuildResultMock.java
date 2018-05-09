@@ -58,7 +58,6 @@ public class BuildResultMock {
         return new BuildResult(
                 completionStatus,
                 Optional.of(new ProcessException("Test Exception.")),
-                "",
                 Optional.ofNullable(buildExecutionConfig),
                 Optional.ofNullable(buildDriverResult),
                 Optional.ofNullable(repositoryManagerResult),

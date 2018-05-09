@@ -97,8 +97,6 @@ public class BuildExecutionTest extends BuildExecutionBase {
 
         //check results: logs
         BuildDriverResult buildDriverResult = buildResult.getBuildDriverResult().get();
-        String buildLog = buildDriverResult.getBuildLog();
-        Assert.assertTrue("Invalid build log.", buildLog.contains("Finished: SUCCESS"));
 
         //check results: artifacts
         RepositoryManagerResult repositoryManagerResult = buildResult.getRepositoryManagerResult().get();

@@ -131,7 +131,6 @@ public class BuildRecordEndpointTest {
         configureBuildExecutorMock(5684);
         BuildRecord buildRecord = mock(BuildRecord.class);
 
-        when(buildRecord.getBuildLog()).thenReturn(logContent);
         when(buildRecordRepository.findByIdFetchAllProperties(logId)).thenReturn(buildRecord);
     }
 

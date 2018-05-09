@@ -35,7 +35,6 @@ public class RepositoryManagerResultRest implements Serializable {
     private List<ArtifactRest> builtArtifacts;
     private List<ArtifactRest> dependencies;
     private String buildContentId;
-    private String log;
     private CompletionStatus completionStatus;
 
     public RepositoryManagerResultRest() {}
@@ -44,7 +43,6 @@ public class RepositoryManagerResultRest implements Serializable {
         builtArtifacts = result.getBuiltArtifacts().stream().map(artifact -> new ArtifactRest(artifact)).collect(Collectors.toList());
         dependencies = result.getDependencies().stream().map(artifact -> new ArtifactRest(artifact)).collect(Collectors.toList());
         buildContentId = result.getBuildContentId();
-        log = result.getLog();
         completionStatus = result.getCompletionStatus();
     }
 
@@ -60,10 +58,6 @@ public class RepositoryManagerResultRest implements Serializable {
         return buildContentId;
     }
 
-    public String getLog() {
-        return log;
-    }
-
     public CompletionStatus getCompletionStatus() {
         return completionStatus;
     }
@@ -73,7 +67,7 @@ public class RepositoryManagerResultRest implements Serializable {
         List<Artifact> dependencies = getDependencies().stream().map(artifactRest -> artifactRest.toDBEntityBuilder().build()).collect(Collectors.toList());
         String buildContentId = getBuildContentId();
 
-        return new GenericRepositoryManagerResult(builtArtifacts, dependencies, buildContentId, log, completionStatus);
+        return new GenericRepositoryManagerResult(builtArtifacts, dependencies, buildContentId, completionStatus);
     }
 
     @Override
@@ -82,7 +76,6 @@ public class RepositoryManagerResultRest implements Serializable {
                 "builtArtifacts=" + builtArtifacts +
                 ", dependencies=" + dependencies +
                 ", buildContentId='" + buildContentId + '\'' +
-                ", log='" + log + '\'' +
                 ", completionStatus=" + completionStatus +
                 '}';
     }
@@ -98,19 +91,16 @@ public class RepositoryManagerResultRest implements Serializable {
         private final List<Artifact> builtArtifacts;
         private final List<Artifact> dependencies;
         private final String buildContentId;
-        private final String log;
         private final CompletionStatus status;
 
         public GenericRepositoryManagerResult(
                 List<Artifact> builtArtifacts,
                 List<Artifact> dependencies,
                 String buildContentId,
-                String log,
                 CompletionStatus status) {
             this.builtArtifacts = builtArtifacts;
             this.dependencies = dependencies;
             this.buildContentId = buildContentId;
-            this.log = log;
             this.status = status;
         }
 
@@ -127,11 +117,6 @@ public class RepositoryManagerResultRest implements Serializable {
         @Override
         public String getBuildContentId() {
             return buildContentId;
-        }
-
-        @Override
-        public String getLog() {
-            return log;
         }
 
         @Override

@@ -142,7 +142,7 @@ public abstract class AbstractDependentBuildTest {
                 new SequenceHandlerRepositoryMock(),
                 targetRepositoryRepository
         );
-        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore, systemConfig);
+        DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore);
 
         if (buildSchedulerFactory == null) {
             buildSchedulerFactory = new MockBuildSchedulerFactory();
@@ -317,7 +317,6 @@ public abstract class AbstractDependentBuildTest {
         return new BuildResult(
                 CompletionStatus.SUCCESS,
                 Optional.empty(),
-                "",
                 Optional.of(mock(BuildExecutionConfiguration.class)),
                 Optional.of(buildDriverResult()),
                 Optional.of(repoManagerResult()),

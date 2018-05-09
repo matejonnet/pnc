@@ -200,11 +200,6 @@ public class StatusUpdatesTest {
         IndyRepositoryManagerResult repoManagerResult = new IndyRepositoryManagerResult(Collections.emptyList(), Collections.emptyList(), RandomStringUtils.randomNumeric(4));
         BuildDriverResult driverResult = new BuildDriverResult() {
             @Override
-            public String getBuildLog() {
-                return "";
-            }
-
-            @Override
             public BuildStatus getBuildStatus() {
                 return BuildStatus.SUCCESS;
             }
@@ -212,7 +207,6 @@ public class StatusUpdatesTest {
         return new BuildResult(
                 CompletionStatus.SUCCESS,
                 Optional.empty(),
-                "",
                 Optional.empty(),
                 Optional.of(driverResult),
                 Optional.of(repoManagerResult),

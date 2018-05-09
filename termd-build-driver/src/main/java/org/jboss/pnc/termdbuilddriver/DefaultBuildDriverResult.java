@@ -26,17 +26,10 @@ import org.jboss.pnc.spi.builddriver.BuildDriverResult;
  */
 public class DefaultBuildDriverResult implements BuildDriverResult {
 
-    String buildLog;
     BuildStatus buildStatus;
 
-    public DefaultBuildDriverResult(String buildLog, BuildStatus buildStatus) {
-        this.buildLog = buildLog;
+    public DefaultBuildDriverResult(BuildStatus buildStatus) {
         this.buildStatus = buildStatus;
-    }
-
-    @Override
-    public String getBuildLog() {
-        return buildLog;
     }
 
     @Override

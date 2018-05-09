@@ -61,7 +61,6 @@ public class BuildResultSerializationTest {
         Assert.assertEquals(message, buildResult.getRepositoryManagerResult().get().getBuildContentId(), buildResultFromJson.getRepositoryManagerResult().get().getBuildContentId());
         Assert.assertEquals(message, buildResult.getRepositoryManagerResult().get().getBuiltArtifacts().get(0).getId(), buildResultFromJson.getRepositoryManagerResult().get().getBuiltArtifacts().get(0).getId());
 
-        Assert.assertEquals(message, buildResult.getBuildDriverResult().get().getBuildLog(), buildResultFromJson.getBuildDriverResult().get().getBuildLog());
         Assert.assertEquals(message, buildResult.getBuildDriverResult().get().getBuildStatus(), buildResultFromJson.getBuildDriverResult().get().getBuildStatus());
 
         Assert.assertEquals(message, buildResult.getRepourResult().get().getCompletionStatus(), buildResultFromJson.getRepourResult().get().getCompletionStatus());

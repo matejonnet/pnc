@@ -78,11 +78,6 @@ public abstract class BuildDriverBase {
     protected BuildDriverResult getBuildResultMock(final RunningEnvironment runningEnvironment) {
         return new BuildDriverResult() {
             @Override
-            public String getBuildLog() {
-                return "Building in workspace ... Finished: SUCCESS";
-            }
-
-            @Override
             public BuildStatus getBuildStatus() {
                 return buildStatus;
             }
