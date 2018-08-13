@@ -24,9 +24,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import org.jboss.pnc.common.json.serializer.AdjacencyListSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.provider.certpath.AdjacencyList;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -48,6 +51,10 @@ public class JsonOutputConverterMapper {
         mapper.disable(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS);
 
         mapper.addMixInAnnotations(Optional.class, OptionalMixin.class);
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(AdjacencyList.class, new AdjacencyListSerializer());
+        mapper.registerModule(module);
     }
 
     /**
