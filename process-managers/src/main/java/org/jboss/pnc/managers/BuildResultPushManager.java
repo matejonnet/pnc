@@ -29,13 +29,17 @@ import org.jboss.pnc.causewayclient.remotespi.Dependency;
 import org.jboss.pnc.causewayclient.remotespi.Logfile;
 import org.jboss.pnc.causewayclient.remotespi.MavenBuild;
 import org.jboss.pnc.causewayclient.remotespi.MavenBuiltArtifact;
+import org.jboss.pnc.causewayclient.remotespi.NpmBuild;
+import org.jboss.pnc.causewayclient.remotespi.NpmBuiltArtifact;
 import org.jboss.pnc.common.maven.Gav;
+import org.jboss.pnc.common.npm.NV;
 import org.jboss.pnc.model.Artifact;
 import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildEnvironment;
 import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.model.BuildRecordPushResult;
 import org.jboss.pnc.model.BuildStatus;
+import org.jboss.pnc.model.BuildType;
 import org.jboss.pnc.model.IdRev;
 import org.jboss.pnc.rest.restmodel.BuildRecordPushResultRest;
 import org.jboss.pnc.spi.coordinator.ProcessException;
@@ -54,6 +58,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -167,18 +172,22 @@ public class BuildResultPushManager {
             return new Result(buildRecordId.toString(), Result.Status.REJECTED, "Cannot push failed build.");
         }
 
-        BuildImportRequest buildImportRequest = createCausewayPushRequest(buildRecord, tagPrefix, callBackUrl, authToken);
-        boolean successfullyPushed = causewayClient.importBuild(buildImportRequest, authToken);
+        Optional<BuildImportRequest> buildImportRequest = createCausewayPushRequest(buildRecord, tagPrefix, callBackUrl, authToken);
+
+        boolean successfullyPushed = false;
+        if (buildImportRequest.isPresent()) {
+            successfullyPushed = causewayClient.importBuild(buildImportRequest.get(), authToken);
+        }
+
         if (!successfullyPushed) {
             inProgress.remove(buildRecordId);
             return new Result(buildRecordId.toString(), Result.Status.REJECTED, "Failed to push to Causeway.");
         } else {
             return new Result(buildRecordId.toString(), Result.Status.ACCEPTED);
         }
-
     }
 
-    private BuildImportRequest createCausewayPushRequest(
+    private Optional<BuildImportRequest> createCausewayPushRequest(
             BuildRecord buildRecord,
             String tagPrefix,
             String callBackUrl,
@@ -201,7 +210,6 @@ public class BuildResultPushManager {
         logger.debug("Preparing BuildImportRequest containing {} built artifacts and {} dependencies.", builtArtifactEntities.size(), dependencyEntities.size());
 
         Set<Dependency> dependencies = collectDependencies(dependencyEntities);
-        Set<BuiltArtifact> builtArtifacts = collectBuiltArtifacts(builtArtifactEntities);
 
         CallbackTarget callbackTarget = CallbackTarget.callbackPost(callBackUrl, authToken);
 
@@ -223,27 +231,56 @@ public class BuildResultPushManager {
 
         addLogs(buildRecord, logs);
 
-        Build build = new MavenBuild(
-                projectVersionRef.getGroupId(),
-                projectVersionRef.getArtifactId(),
-                projectVersionRef.getVersionString(),
-                executionRootName,
-                buildRecord.getExecutionRootVersion(),
-                "PNC",
-                buildRecord.getId(),
-                String.format(PNC_BUILD_RECORD_PATH, buildRecord.getId()),
-                buildRecord.getStartTime(),
-                buildRecord.getEndTime(),
-                buildRecord.getScmRepoURL(),
-                buildRecord.getScmRevision(),
-                buildRoot,
-                logs,
-                dependencies,
-                builtArtifacts,
-                tagPrefix
-        );
+        BuildType buildType = buildRecord.getBuildConfigurationAudited().getBuildType();
+        Build build;
 
-        return new BuildImportRequest(callbackTarget, build);
+        if (buildType.equals(BuildType.MVN)) {
+            Set<BuiltArtifact> builtArtifacts =  collectMavenBuiltArtifacts(builtArtifactEntities);
+            build = new MavenBuild(
+                    projectVersionRef.getGroupId(),
+                    projectVersionRef.getArtifactId(),
+                    projectVersionRef.getVersionString(),
+                    executionRootName,
+                    buildRecord.getExecutionRootVersion(),
+                    "PNC",
+                    buildRecord.getId(),
+                    String.format(PNC_BUILD_RECORD_PATH, buildRecord.getId()),
+                    buildRecord.getStartTime(),
+                    buildRecord.getEndTime(),
+                    buildRecord.getScmRepoURL(),
+                    buildRecord.getScmRevision(),
+                    buildRoot,
+                    logs,
+                    dependencies,
+                    builtArtifacts,
+                    tagPrefix
+            );
+        } else if (buildType.equals(BuildType.NPM)) {
+            Set<BuiltArtifact> builtArtifacts =  collectNpmBuiltArtifacts(builtArtifactEntities);
+            build = new NpmBuild(
+                    "", //TODO
+                    "", //TODO
+                    executionRootName, //TODO
+                    buildRecord.getExecutionRootVersion(), //TODO
+                    "PNC",
+                    buildRecord.getId(),
+                    String.format(PNC_BUILD_RECORD_PATH, buildRecord.getId()),
+                    buildRecord.getStartTime(),
+                    buildRecord.getEndTime(),
+                    buildRecord.getScmRepoURL(),
+                    buildRecord.getScmRevision(),
+                    buildRoot,
+                    logs,
+                    dependencies,
+                    builtArtifacts,
+                    tagPrefix
+            );
+        } else {
+            logger.error("Cannot push BR.id {}, invalid buildType: {}.", buildRecord.getId(), buildType);
+            return Optional.empty();
+        }
+
+        return Optional.of(new BuildImportRequest(callbackTarget, build));
     }
 
     private void addLogs(BuildRecord buildRecord, Set<Logfile> logs) {
@@ -280,13 +317,31 @@ public class BuildResultPushManager {
                 executionRootVersion);
     }
 
-    private Set<BuiltArtifact> collectBuiltArtifacts(Collection<Artifact> builtArtifacts) {
+    private Set<BuiltArtifact> collectMavenBuiltArtifacts(Collection<Artifact> builtArtifacts) {
         return builtArtifacts.stream().map(artifact -> {
                 Gav gav = Gav.parse(artifact.getIdentifier());
                 return new MavenBuiltArtifact(
                         gav.getGroupId(),
                         gav.getArtifactId(),
                         gav.getVersion(),
+                        artifact.getId(),
+                        artifact.getFilename(),
+                        artifact.getTargetRepository().getRepositoryType().toString(),
+                        artifact.getMd5(),
+                        artifact.getDeployPath(),
+                        artifact.getTargetRepository().getRepositoryPath(),
+                        artifact.getSize().intValue()
+                        );
+                })
+            .collect(Collectors.toSet());
+    }
+
+    private Set<BuiltArtifact> collectNpmBuiltArtifacts(Collection<Artifact> builtArtifacts) {
+        return builtArtifacts.stream().map(artifact -> {
+                NV nv = NV.parse(artifact.getIdentifier());
+                return new NpmBuiltArtifact(
+                        nv.getName(),
+                        nv.getVersion(),
                         artifact.getId(),
                         artifact.getFilename(),
                         artifact.getTargetRepository().getRepositoryType().toString(),
