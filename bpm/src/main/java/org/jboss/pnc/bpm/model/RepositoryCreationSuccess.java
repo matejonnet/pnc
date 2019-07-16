@@ -24,8 +24,11 @@ import lombok.Data;
 /**
  *
  * @author Honza Brázdil &lt;jbrazdil@redhat.com&gt;
+ *
+ * @deprecated reimplemented in DTO
  */
 @Data
+@Deprecated
 public class RepositoryCreationSuccess extends BpmNotificationRest{
 
     private RepositoryCreationDataWrapper data;

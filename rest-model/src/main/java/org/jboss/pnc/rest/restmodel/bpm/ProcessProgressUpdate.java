@@ -33,6 +33,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
+ *
+ * @deprecated Process progress updates will be notified using centralized logging
  */
 @JsonDeserialize(builder = ProcessProgressUpdate.ProcessProgressUpdateBuilder.class)
 @AllArgsConstructor
@@ -41,6 +43,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @ToString
 @NoArgsConstructor
 @Setter(onMethod=@__({@Deprecated}))
+@Deprecated
 public class ProcessProgressUpdate extends BpmNotificationRest {
 
     /**

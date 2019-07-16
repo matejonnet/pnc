@@ -23,7 +23,6 @@ import org.jboss.pnc.bpm.BpmManager;
 import org.jboss.pnc.common.Date.ExpiresDate;
 import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.common.logging.BuildTaskContext;
-import org.jboss.pnc.rest.executor.notifications.NotificationSender;
 import org.jboss.pnc.rest.utils.BpmNotifier;
 import org.jboss.pnc.spi.events.BuildExecutionStatusChangedEvent;
 import org.jboss.pnc.spi.exception.CoreException;
@@ -55,8 +54,6 @@ public class BuildExecutorTriggerer {
 
     private SystemConfig systemConfig;
 
-    private NotificationSender notificationSender;
-
     @Deprecated //CDI workaround
     public BuildExecutorTriggerer() {}
 
@@ -64,12 +61,10 @@ public class BuildExecutorTriggerer {
     public BuildExecutorTriggerer(
             BuildExecutor buildExecutor,
             BpmNotifier bpmNotifier,
-            NotificationSender notificationSender,
             BpmManager bpmManager,
             SystemConfig systemConfig) {
         this.buildExecutor = buildExecutor;
         this.bpmNotifier = bpmNotifier;
-        this.notificationSender = notificationSender;
         this.bpmManager = bpmManager;
         this.systemConfig = systemConfig;
     }

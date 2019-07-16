@@ -28,8 +28,11 @@ import java.io.Serializable;
  * field, which must match one of the BpmEventType-s.
  *
  * @author Jakub Senko
+ *
+ * @deprecated moved to DTO BpmNotification
  */
 @ToString
+@Deprecated
 public abstract class BpmNotificationRest implements Serializable {
 
     @Getter
