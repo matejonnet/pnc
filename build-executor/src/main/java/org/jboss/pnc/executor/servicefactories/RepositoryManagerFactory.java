@@ -17,15 +17,13 @@
  */
 package org.jboss.pnc.executor.servicefactories;
 
-import org.jboss.pnc.model.TargetRepository;
+import org.jboss.pnc.enums.RepositoryType;
 import org.jboss.pnc.spi.executor.exceptions.ExecutorException;
 import org.jboss.pnc.spi.repositorymanager.RepositoryManager;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-
-import org.jboss.pnc.enums.RepositoryType;
 
 
 /**

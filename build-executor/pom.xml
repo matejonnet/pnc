@@ -45,10 +45,6 @@
     </dependency>
     <dependency>
       <groupId>org.jboss.pnc</groupId>
-      <artifactId>model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.pnc</groupId>
       <artifactId>common</artifactId>
     </dependency>
     <dependency>
@@ -69,6 +65,11 @@
     </dependency>
 
     <!--Test dependencies-->
+    <dependency>
+      <groupId>org.jboss.pnc</groupId>
+      <artifactId>model</artifactId> <!-- TODO remove me -->
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.jboss.pnc</groupId>
       <artifactId>test-common</artifactId>

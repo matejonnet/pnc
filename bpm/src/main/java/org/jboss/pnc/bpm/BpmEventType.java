@@ -40,19 +40,19 @@ import static java.util.Objects.requireNonNull;
 @ToString
 public enum BpmEventType { //TODO merge with org.jboss.pnc.spi.notifications.model.EventType ?
     // <T extends BpmNotificationRest>
-    PROCESS_PROGRESS_UPDATE(ProcessProgressUpdate.class),
+    PROCESS_PROGRESS_UPDATE(ProcessProgressUpdate.class), // ?USED BY UI?
     DEBUG(BpmStringMapNotificationRest.class),
     BREW_IMPORT_SUCCESS(MilestoneReleaseResultRest.class), //TODO remove SUCCESS|ERROR from the event types ?
     BREW_IMPORT_ERROR(BpmStringMapNotificationRest.class),
-    BUILD_COMPLETE(BuildResultRest.class),
-    RC_REPO_CREATION_SUCCESS(BpmStringMapNotificationRest.class),
-    RC_REPO_CREATION_ERROR(BpmStringMapNotificationRest.class),
-    RC_REPO_CLONE_SUCCESS(BpmStringMapNotificationRest.class),
-    RC_REPO_CLONE_ERROR(BpmStringMapNotificationRest.class),
+    BUILD_COMPLETE(BuildResultRest.class), //USED BY UI
+    RC_REPO_CREATION_SUCCESS(BpmStringMapNotificationRest.class), //USED BY UI
+    RC_REPO_CREATION_ERROR(BpmStringMapNotificationRest.class), //USED BY UI
+    RC_REPO_CLONE_SUCCESS(BpmStringMapNotificationRest.class), //USED BY UI
+    RC_REPO_CLONE_ERROR(BpmStringMapNotificationRest.class), //USED BY UI
 
     //notification for bpm task completion
-    RC_CREATION_SUCCESS(RepositoryCreationSuccess.class),
-    RC_CREATION_ERROR(BpmStringMapNotificationRest.class),
+    RC_CREATION_SUCCESS(RepositoryCreationSuccess.class), //USED BY UI
+    RC_CREATION_ERROR(BpmStringMapNotificationRest.class), //USED BY UI
     BCC_CONFIG_SET_ADDITION_SUCCESS(BpmStringMapNotificationRest.class),
     BCC_CONFIG_SET_ADDITION_ERROR(BpmStringMapNotificationRest.class);
 
