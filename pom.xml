@@ -48,9 +48,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/project-ncl/pnc.git</connection>
-    <developerConnection>scm:git:git@github.com:project-ncl/pnc.git</developerConnection>
-    <url>https://github.com/project-ncl/pnc/</url>
+    <connection>scm:git:git@github.com:matejonnet/pnc.git</connection>
+    <developerConnection>scm:git:git@github.com:matejonnet/pnc.git</developerConnection>
+    <url>scm:git:git@github.com:matejonnet/pnc.git</url>
     <tag>HEAD</tag>
   </scm>
 
