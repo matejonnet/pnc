@@ -32,5 +32,4 @@ public abstract class AbstractIntIdProviderTest<T extends GenericEntity<java.lan
     protected Integer getNextId() {
         return entityId++;
     }
-
 }

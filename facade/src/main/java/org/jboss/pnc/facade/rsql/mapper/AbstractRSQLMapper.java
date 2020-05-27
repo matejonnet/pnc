@@ -90,5 +90,4 @@ public abstract class AbstractRSQLMapper<ID extends Serializable, DB extends Gen
     protected abstract SingularAttribute<DB, ? extends GenericEntity<?>> toEntity(String name);
 
     protected abstract SingularAttribute<DB, ?> toAttribute(String name);
-
 }
