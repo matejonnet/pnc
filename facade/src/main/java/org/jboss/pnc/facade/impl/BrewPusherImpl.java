@@ -36,6 +36,7 @@ import org.jboss.pnc.facade.validation.AlreadyRunningException;
 import org.jboss.pnc.facade.validation.EmptyEntityException;
 import org.jboss.pnc.facade.validation.InvalidEntityException;
 import org.jboss.pnc.facade.validation.OperationNotAllowedException;
+import org.jboss.pnc.mapper.api.BuildMapper;
 import org.jboss.pnc.mapper.api.BuildPushResultMapper;
 import org.jboss.pnc.model.Artifact;
 import org.jboss.pnc.model.BuildRecord;
@@ -155,17 +156,15 @@ public class BrewPusherImpl implements BrewPusher {
         MDCUtils.addProcessContext(buildPushResultId.toString());
         MDCUtils.addCustomContext(BUILD_ID_KEY, buildId);
         try {
-            return doPushBuild(Integer.parseInt(buildId), buildPushParameters, buildPushResultId);
+            return doPushBuild(BuildMapper.idMapper.toEntity(buildId), buildPushParameters, buildPushResultId);
         } finally {
             MDCUtils.removeProcessContext();
             MDCUtils.removeCustomContext(BUILD_ID_KEY);
         }
     }
 
-    private BuildPushResult doPushBuild(
-            Integer buildId,
-            BuildPushParameters buildPushParameters,
-            Long buildPushResultId) throws ProcessException {
+    private BuildPushResult doPushBuild(Long buildId, BuildPushParameters buildPushParameters, Long buildPushResultId)
+            throws ProcessException {
 
         // collect and validate input data
         BuildRecord buildRecord = getLatestSuccessfullyExecutedBuildRecord(buildId);
@@ -175,7 +174,7 @@ public class BrewPusherImpl implements BrewPusher {
             String message = "Build contains artifacts of insufficient quality: BLACKLISTED/DELETED.";
             log.debug(message);
             BuildPushResult pushResult = BuildPushResult.builder()
-                    .buildId(buildId.toString())
+                    .buildId(BuildMapper.idMapper.toDto(buildId))
                     .status(BuildPushStatus.REJECTED)
                     .id(buildPushResultId.toString())
                     .logContext(buildPushResultId.toString())
@@ -230,7 +229,7 @@ public class BrewPusherImpl implements BrewPusher {
      * @throws InconsistentDataException when there is no SUCCESS status before NO_REBUILD_REQUIRED
      * @throws InvalidEntityException when the status is not SUCCESS or NO_REBUILD_REQUIRED
      */
-    private BuildRecord getLatestSuccessfullyExecutedBuildRecord(Integer buildRecordId) {
+    private BuildRecord getLatestSuccessfullyExecutedBuildRecord(Long buildRecordId) {
         BuildRecord buildRecord = buildRecordRepository.findByIdFetchProperties(buildRecordId);
         if (buildRecord == null) {
             throw new EmptyEntityException("Build record not found.");
@@ -257,14 +256,14 @@ public class BrewPusherImpl implements BrewPusher {
     }
 
     @Override
-    public boolean brewPushCancel(int buildId) {
+    public boolean brewPushCancel(long buildId) {
         return buildResultPushManager.cancelInProgressPush(buildId);
     }
 
     @Override
-    public BuildPushResult brewPushComplete(int buildId, BuildPushResult buildPushResult) {
+    public BuildPushResult brewPushComplete(long buildId, BuildPushResult buildPushResult) {
         MDCUtils.addProcessContext(buildPushResult.getId());
-        MDCUtils.addCustomContext(BUILD_ID_KEY, Integer.toString(buildId));
+        MDCUtils.addCustomContext(BUILD_ID_KEY, Long.toString(buildId));
         try {
             log.info(
                     "Received completion notification for BuildRecord.id: {}. Object received: {}.",
@@ -280,13 +279,13 @@ public class BrewPusherImpl implements BrewPusher {
     }
 
     @Override
-    public BuildPushResult getBrewPushResult(int buildId) {
+    public BuildPushResult getBrewPushResult(long buildId) {
         BuildPushResult result = null;
         if (buildResultPushManager.getInProgress().contains(buildId)) {
             result = BuildPushResult.builder()
                     .buildId(String.valueOf(buildId))
                     .status(BuildPushStatus.ACCEPTED)
-                    .logContext(Integer.toString(buildId))
+                    .logContext(Long.toString(buildId))
                     .build();
         } else {
             BuildRecordPushResult latestForBuildRecord = buildRecordPushResultRepository

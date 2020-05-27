@@ -20,8 +20,11 @@ package org.jboss.pnc.integration_new;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.pnc.AbstractTest;
+import org.jboss.pnc.common.concurrent.Sequence;
 import org.jboss.pnc.coordinator.maintenance.TemporaryBuildsCleaner;
-import org.jboss.pnc.integration_new.setup.Deployments;
+import org.jboss.pnc.enums.ArtifactQuality;
+import org.jboss.pnc.enums.BuildStatus;
+import org.jboss.pnc.integration.deployments.Deployments;
 import org.jboss.pnc.mock.RemoteBuildsCleanerMock;
 import org.jboss.pnc.model.Artifact;
 import org.jboss.pnc.model.BuildConfigSetRecord;
@@ -29,7 +32,6 @@ import org.jboss.pnc.model.BuildConfiguration;
 import org.jboss.pnc.model.BuildConfigurationAudited;
 import org.jboss.pnc.model.BuildConfigurationSet;
 import org.jboss.pnc.model.BuildRecord;
-import org.jboss.pnc.enums.BuildStatus;
 import org.jboss.pnc.model.TargetRepository;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.spi.datastore.Datastore;
@@ -62,7 +64,6 @@ import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
-
 import java.lang.invoke.MethodHandles;
 import java.util.Date;
 import java.util.HashSet;
@@ -70,8 +71,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.jboss.pnc.enums.ArtifactQuality;
 
 import static org.jboss.pnc.integration_new.setup.Deployments.addBuildExecutorMock;
 import static org.junit.Assert.assertEquals;
@@ -331,7 +330,7 @@ public class TemporaryBuildsCleanerTest {
 
     private BuildRecord.Builder initBuildRecordBuilder() {
         return BuildRecord.Builder.newBuilder()
-                .id(datastore.getNextBuildRecordId())
+                .id(Sequence.nextId())
                 .buildConfigurationAudited(this.buildConfigurationAudited)
                 .submitTime(new Date())
                 .user(this.user)

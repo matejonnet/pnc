@@ -15,30 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.bpm.causeway;
+package org.jboss.pnc.facade.rsql.mapper.type;
 
-import javax.enterprise.context.ApplicationScoped;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-/**
- * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
- */
-@ApplicationScoped
-public class InProgress {
-    private Map<Long, String> inProgress = new ConcurrentHashMap<>();
-
-    public boolean add(Long id, String tagPrefix) {
-        return inProgress.putIfAbsent(id, tagPrefix) == null;
-    }
-
-    public String remove(Long id) {
-        return inProgress.remove(id);
-    }
-
-    public Set<Long> getAllIds() {
-        return Collections.unmodifiableSet(inProgress.keySet());
+public class Base64EncodedLong implements Comparable<Base64EncodedLong> {
+    @Override
+    public int compareTo(Base64EncodedLong o) {
+        return 0;
     }
 }

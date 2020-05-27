@@ -17,10 +17,9 @@
  */
 package org.jboss.pnc.coordinator.test;
 
-import java.lang.reflect.Field;
 import lombok.RequiredArgsConstructor;
-
 import org.jboss.pnc.common.Configuration;
+import org.jboss.pnc.common.concurrent.Sequence;
 import org.jboss.pnc.common.json.ConfigurationParseException;
 import org.jboss.pnc.common.json.moduleconfig.SystemConfig;
 import org.jboss.pnc.common.json.moduleprovider.PncConfigProvider;
@@ -31,6 +30,9 @@ import org.jboss.pnc.coordinator.builder.DefaultBuildCoordinator;
 import org.jboss.pnc.coordinator.builder.datastore.DatastoreAdapter;
 import org.jboss.pnc.datastore.DefaultDatastore;
 import org.jboss.pnc.enums.BuildStatus;
+import org.jboss.pnc.enums.RebuildMode;
+import org.jboss.pnc.mapper.api.BuildMapper;
+import org.jboss.pnc.mapper.api.GroupBuildMapper;
 import org.jboss.pnc.mock.model.BuildEnvironmentMock;
 import org.jboss.pnc.mock.model.RepositoryConfigurationMock;
 import org.jboss.pnc.mock.repository.ArtifactRepositoryMock;
@@ -38,7 +40,6 @@ import org.jboss.pnc.mock.repository.BuildConfigSetRecordRepositoryMock;
 import org.jboss.pnc.mock.repository.BuildConfigurationAuditedRepositoryMock;
 import org.jboss.pnc.mock.repository.BuildConfigurationRepositoryMock;
 import org.jboss.pnc.mock.repository.BuildRecordRepositoryMock;
-import org.jboss.pnc.mock.repository.SequenceHandlerRepositoryMock;
 import org.jboss.pnc.mock.repository.TargetRepositoryRepositoryMock;
 import org.jboss.pnc.mock.repository.UserRepositoryMock;
 import org.jboss.pnc.model.Artifact;
@@ -51,8 +52,6 @@ import org.jboss.pnc.model.RepositoryConfiguration;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.spi.BuildOptions;
 import org.jboss.pnc.spi.BuildResult;
-import org.jboss.pnc.enums.RebuildMode;
-import org.jboss.pnc.mapper.api.BuildMapper;
 import org.jboss.pnc.spi.builddriver.BuildDriverResult;
 import org.jboss.pnc.spi.coordinator.BuildCoordinator;
 import org.jboss.pnc.spi.coordinator.BuildTask;
@@ -65,18 +64,17 @@ import org.jboss.pnc.spi.executor.BuildExecutionConfiguration;
 import org.jboss.pnc.spi.executor.exceptions.ExecutorException;
 import org.jboss.pnc.spi.repositorymanager.RepositoryManagerResult;
 import org.jboss.pnc.test.util.Wait;
-
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.event.Event;
+import java.lang.reflect.Field;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -84,16 +82,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.jboss.pnc.mapper.api.GroupBuildMapper;
-
 import static org.mockito.Matchers.any;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -107,7 +100,6 @@ public abstract class AbstractDependentBuildTest {
 
     protected static final AtomicInteger configIdSequence = new AtomicInteger(0);
     protected static final AtomicInteger configAuditedIdSequence = new AtomicInteger(0);
-    protected static final AtomicInteger buildRecordIdSequence = new AtomicInteger(0);
     protected static final AtomicInteger artifactsIdSequence = new AtomicInteger(0);
 
     protected List<BuildTask> builtTasks;
@@ -152,14 +144,6 @@ public abstract class AbstractDependentBuildTest {
         buildConfigurationAuditedRepository = new BuildConfigurationAuditedRepositoryMock();
         TargetRepositoryRepository targetRepositoryRepository = new TargetRepositoryRepositoryMock();
 
-        SequenceHandlerRepositoryMock sequenceHandlerRepositoryMock = new SequenceHandlerRepositoryMock() {
-
-            @Override
-            public synchronized Long getNextID(String sequenceName) {
-                return Long.valueOf(buildRecordIdSequence.incrementAndGet());
-            }
-
-        };
         DefaultDatastore datastore = new DefaultDatastore(
                 new ArtifactRepositoryMock(),
                 buildRecordRepository,
@@ -167,7 +151,6 @@ public abstract class AbstractDependentBuildTest {
                 buildConfigurationAuditedRepository,
                 new BuildConfigSetRecordRepositoryMock(),
                 new UserRepositoryMock(),
-                sequenceHandlerRepositoryMock,
                 targetRepositoryRepository);
         DatastoreAdapter datastoreAdapter = new DatastoreAdapter(datastore);
 
@@ -207,7 +190,7 @@ public abstract class AbstractDependentBuildTest {
                 .iterator()
                 .next();
         return BuildRecord.Builder.newBuilder()
-                .id(buildRecordIdSequence.getAndIncrement())
+                .id(Sequence.nextId())
                 .status(BuildStatus.SUCCESS)
                 .buildConfigurationAudited(configurationAudited)
                 .temporaryBuild(false)
@@ -290,7 +273,7 @@ public abstract class AbstractDependentBuildTest {
         }
     }
 
-    protected BuildTask getBuildTaskById(Integer taskId) {
+    protected BuildTask getBuildTaskById(Long taskId) {
         Optional<BuildTask> buildTask = builtTasks.stream().filter(bt -> bt.getId() == taskId).findAny();
         if (buildTask.isPresent()) {
             return buildTask.get();

@@ -17,13 +17,13 @@
  */
 package org.jboss.pnc.spi.repositorymanager;
 
-import java.util.Map;
-import org.jboss.pnc.model.BuildRecord;
-import org.jboss.pnc.enums.BuildType;
 import org.jboss.pnc.enums.RepositoryType;
+import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.spi.repositorymanager.model.RepositorySession;
 import org.jboss.pnc.spi.repositorymanager.model.RunningRepositoryDeletion;
 import org.jboss.pnc.spi.repositorymanager.model.RunningRepositoryPromotion;
+
+import java.util.Map;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2014-11-23.
@@ -59,7 +59,7 @@ public interface RepositoryManager {
      * @return repository manager result
      * @throws RepositoryManagerException in case of an error when collecting the build artifacts and dependencies
      */
-    RepositoryManagerResult collectRepoManagerResult(Integer id) throws RepositoryManagerException;
+    RepositoryManagerResult collectRepoManagerResult(Long id) throws RepositoryManagerException;
 
     /**
      * Add the repository containing output associated with the specified {@link BuildRecord} to the membership of the

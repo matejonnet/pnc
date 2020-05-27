@@ -76,11 +76,11 @@ public class BuildExecutorTriggerer {
         return buildExecutionSession;
     }
 
-    public void cancelBuild(Integer buildExecutionConfigId) throws CoreException, ExecutorException {
+    public void cancelBuild(Long buildExecutionConfigId) throws CoreException, ExecutorException {
         buildExecutor.cancel(buildExecutionConfigId);
     }
 
-    public Optional<BuildTaskContext> getMdcMeta(Integer buildExecutionConfigId, String userId) {
+    public Optional<BuildTaskContext> getMdcMeta(Long buildExecutionConfigId, String userId) {
         BuildExecutionSession runningExecution = buildExecutor.getRunningExecution(buildExecutionConfigId);
         if (runningExecution != null) {
             BuildExecutionConfiguration buildExecutionConfiguration = runningExecution.getBuildExecutionConfiguration();

@@ -15,30 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.bpm.causeway;
+package org.jboss.pnc.integration.client;
 
-import javax.enterprise.context.ApplicationScoped;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.jboss.pnc.rest.restmodel.ArtifactRest;
 
 /**
- * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
+ *
+ * @author <a href="mailto:jmichalo@redhat.com">Jan Michalov</a>
  */
-@ApplicationScoped
-public class InProgress {
-    private Map<Long, String> inProgress = new ConcurrentHashMap<>();
+public class ArtifactRestClient extends AbstractRestClient<ArtifactRest> {
 
-    public boolean add(Long id, String tagPrefix) {
-        return inProgress.putIfAbsent(id, tagPrefix) == null;
-    }
+    public static final String ARTIFACT_REST_ENDPOINT = "/pnc-rest/rest/artifacts/";
 
-    public String remove(Long id) {
-        return inProgress.remove(id);
-    }
-
-    public Set<Long> getAllIds() {
-        return Collections.unmodifiableSet(inProgress.keySet());
+    public ArtifactRestClient() {
+        super(ARTIFACT_REST_ENDPOINT, ArtifactRest.class);
     }
 }

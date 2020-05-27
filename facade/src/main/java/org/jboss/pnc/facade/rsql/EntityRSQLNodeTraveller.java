@@ -17,9 +17,15 @@
  */
 package org.jboss.pnc.facade.rsql;
 
-import static org.jboss.pnc.facade.rsql.RSQLProducerImpl.IS_NULL;
-import static org.jboss.pnc.facade.rsql.RSQLProducerImpl.LIKE;
-
+import cz.jirutka.rsql.parser.ast.AndNode;
+import cz.jirutka.rsql.parser.ast.ComparisonNode;
+import cz.jirutka.rsql.parser.ast.ComparisonOperator;
+import cz.jirutka.rsql.parser.ast.LogicalNode;
+import cz.jirutka.rsql.parser.ast.Node;
+import cz.jirutka.rsql.parser.ast.OrNode;
+import cz.jirutka.rsql.parser.ast.RSQLOperators;
+import org.jboss.pnc.common.util.NumberUtils;
+import org.jboss.pnc.facade.rsql.mapper.type.Base64EncodedLong;
 import org.jboss.pnc.model.GenericEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +34,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.From;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
-
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -40,13 +45,8 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import cz.jirutka.rsql.parser.ast.AndNode;
-import cz.jirutka.rsql.parser.ast.ComparisonNode;
-import cz.jirutka.rsql.parser.ast.ComparisonOperator;
-import cz.jirutka.rsql.parser.ast.LogicalNode;
-import cz.jirutka.rsql.parser.ast.Node;
-import cz.jirutka.rsql.parser.ast.OrNode;
-import cz.jirutka.rsql.parser.ast.RSQLOperators;
+import static org.jboss.pnc.facade.rsql.RSQLProducerImpl.IS_NULL;
+import static org.jboss.pnc.facade.rsql.RSQLProducerImpl.LIKE;
 import static org.jboss.pnc.facade.rsql.RSQLProducerImpl.NOT_LIKE;
 
 /**
@@ -171,6 +171,8 @@ class EntityRSQLNodeTraveller<DB extends GenericEntity<Integer>>
             return (T) Integer.valueOf(argument);
         } else if (javaType == Long.class || javaType == long.class) {
             return (T) Long.valueOf(argument);
+        } else if (javaType == Base64EncodedLong.class) {
+            return (T) NumberUtils.base64ToDecimal(argument);
         } else if (javaType == Boolean.class || javaType == boolean.class) {
             return (T) Boolean.valueOf(argument);
         } else if (javaType == Date.class) {

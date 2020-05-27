@@ -15,30 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.bpm.causeway;
+package org.jboss.pnc.common.util;
 
-import javax.enterprise.context.ApplicationScoped;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
- */
-@ApplicationScoped
-public class InProgress {
-    private Map<Long, String> inProgress = new ConcurrentHashMap<>();
+public class NumberUtilsTest {
 
-    public boolean add(Long id, String tagPrefix) {
-        return inProgress.putIfAbsent(id, tagPrefix) == null;
+    @Test
+    public void longToBytesAndBack() {
+        long l = 1234567890123456789L;
+        byte[] bytes = NumberUtils.longToBytes(l);
+        long longFromBytes = NumberUtils.bytesToLong(bytes);
+        Assert.assertEquals(l, longFromBytes);
     }
 
-    public String remove(Long id) {
-        return inProgress.remove(id);
-    }
+    @Test
+    public void convertDecimalToBase64() {
+        long decimal = 4242L;
+        String base64 = NumberUtils.decimalToBase64(decimal);
+        long backToDecimal = NumberUtils.base64ToDecimal(base64);
 
-    public Set<Long> getAllIds() {
-        return Collections.unmodifiableSet(inProgress.keySet());
+        Assert.assertEquals(decimal, backToDecimal);
     }
 }

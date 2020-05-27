@@ -26,6 +26,7 @@ import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.model.User;
 import org.jboss.pnc.spi.coordinator.BuildTask;
 import org.jboss.pnc.spi.datastore.Datastore;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.mockito.Mockito;
 
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2014-11-24.
@@ -56,7 +56,6 @@ public class DatastoreMock implements Datastore {
 
     private Map<Integer, BuildConfiguration> buildConfigurations = Collections.synchronizedMap(new HashMap<>());
 
-    AtomicInteger buildRecordSequence = new AtomicInteger(0);
     AtomicInteger buildRecordSetSequence = new AtomicInteger(0);
     AtomicInteger buildConfigAuditedRevSequence = new AtomicInteger(0);
 
@@ -110,11 +109,6 @@ public class DatastoreMock implements Datastore {
 
     @Override
     public void createNewUser(User user) {
-    }
-
-    @Override
-    public int getNextBuildRecordId() {
-        return buildRecordSequence.incrementAndGet();
     }
 
     @Override
@@ -189,7 +183,6 @@ public class DatastoreMock implements Datastore {
         buildRecords.clear();
         buildConfigSetRecords.clear();
         buildConfigurations.clear();
-        buildRecordSequence = new AtomicInteger(0);
         buildRecordSetSequence = new AtomicInteger(0);
         buildConfigAuditedRevSequence = new AtomicInteger(0);
     }

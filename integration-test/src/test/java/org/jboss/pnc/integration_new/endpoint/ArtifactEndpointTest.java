@@ -28,8 +28,8 @@ import org.jboss.pnc.client.RemoteCollection;
 import org.jboss.pnc.client.RemoteResourceException;
 import org.jboss.pnc.dto.Artifact;
 import org.jboss.pnc.dto.Build;
-import org.jboss.pnc.dto.response.MilestoneInfo;
 import org.jboss.pnc.dto.TargetRepository;
+import org.jboss.pnc.dto.response.MilestoneInfo;
 import org.jboss.pnc.enums.ArtifactQuality;
 import org.jboss.pnc.integration_new.setup.Deployments;
 import org.jboss.pnc.integration_new.setup.RestClientConfiguration;
@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.jboss.pnc.client.BuildClient;
 
 /**
  * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
@@ -230,8 +229,10 @@ public class ArtifactEndpointTest {
         ArtifactClient client = new ArtifactClient(RestClientConfiguration.asSystem());
 
         Artifact artifact = client.getSpecific(id);
+        logger.debug("Artifact: {}", artifact);
         final long size = artifact.getSize() + 10;
         Artifact updatedArtifact = artifact.toBuilder().size(size).build();
+        logger.debug("Updated artifact: {}", artifact);
         client.update(id, updatedArtifact);
 
         Artifact artifact2 = client.getSpecific(id);

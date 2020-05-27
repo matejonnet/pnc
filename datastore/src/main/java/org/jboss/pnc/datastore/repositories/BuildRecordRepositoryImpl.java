@@ -55,8 +55,7 @@ import static org.jboss.pnc.spi.datastore.predicates.BuildRecordPredicates.withS
 import static org.jboss.pnc.spi.datastore.predicates.BuildRecordPredicates.includeTemporary;
 
 @Stateless
-public class BuildRecordRepositoryImpl extends AbstractRepository<BuildRecord, Integer>
-        implements BuildRecordRepository {
+public class BuildRecordRepositoryImpl extends AbstractRepository<BuildRecord, Long> implements BuildRecordRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(BuildRecordRepositoryImpl.class);
 
@@ -81,12 +80,12 @@ public class BuildRecordRepositoryImpl extends AbstractRepository<BuildRecord, I
     }
 
     @Override
-    public BuildRecord findByIdFetchAllProperties(Integer id) {
+    public BuildRecord findByIdFetchAllProperties(Long id) {
         return repository.findByIdFetchAllProperties(id);
     }
 
     @Override
-    public BuildRecord findByIdFetchProperties(Integer id) {
+    public BuildRecord findByIdFetchProperties(Long id) {
         BuildRecord buildRecord = repository.findByIdFetchProperties(id);
         if (buildRecord == null) {
             return null;
@@ -138,7 +137,7 @@ public class BuildRecordRepositoryImpl extends AbstractRepository<BuildRecord, I
     }
 
     @Override
-    public GraphWithMetadata<BuildRecord, Integer> getDependencyGraph(Integer buildRecordId) {
+    public GraphWithMetadata<BuildRecord, Long> getDependencyGraph(Long buildRecordId) {
         GraphBuilder graphBuilder = new GraphBuilder<BuildRecord>(
                 id -> Optional.ofNullable(findByIdFetchProperties(id)),
                 buildRecord -> Arrays.asList(buildRecord.getDependencyBuildRecordIds()),

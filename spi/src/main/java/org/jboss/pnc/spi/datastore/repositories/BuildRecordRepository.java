@@ -33,14 +33,14 @@ import java.util.Set;
 /**
  * Interface for manipulating {@link org.jboss.pnc.model.BuildRecord} entity.
  */
-public interface BuildRecordRepository extends Repository<BuildRecord, Integer> {
+public interface BuildRecordRepository extends Repository<BuildRecord, Long> {
 
-    BuildRecord findByIdFetchAllProperties(Integer id);
+    BuildRecord findByIdFetchAllProperties(Long id);
 
     /**
      * @return null if record is not found.
      */
-    BuildRecord findByIdFetchProperties(Integer id);
+    BuildRecord findByIdFetchProperties(Long id);
 
     List<BuildRecord> queryWithPredicatesUsingCursor(
             PageInfo pageInfo,
@@ -84,7 +84,7 @@ public interface BuildRecordRepository extends Repository<BuildRecord, Integer> 
      * @param buildRecordId
      * @return the dependency graph containing only competed builds
      */
-    GraphWithMetadata<BuildRecord, Integer> getDependencyGraph(Integer buildRecordId);
+    GraphWithMetadata<BuildRecord, Long> getDependencyGraph(Long buildRecordId);
 
     BuildRecord getLatestSuccessfulBuildRecord(IdRev buildConfigurationAuditedIdRev, boolean temporaryBuild);
 

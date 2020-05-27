@@ -17,6 +17,7 @@
  */
 package org.jboss.pnc.facade.rsql.mapper;
 
+import org.jboss.pnc.facade.rsql.mapper.type.Base64EncodedLong;
 import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.model.BuildRecord_;
 import org.jboss.pnc.model.GenericEntity;
@@ -29,7 +30,7 @@ import javax.persistence.metamodel.SingularAttribute;
  * @author Honza Brázdil &lt;jbrazdil@redhat.com&gt;
  */
 @ApplicationScoped
-public class BuildRSQLMapper extends AbstractRSQLMapper<Integer, BuildRecord> {
+public class BuildRSQLMapper extends AbstractRSQLMapper<Long, BuildRecord> {
 
     public BuildRSQLMapper() {
         super(BuildRecord.class);
@@ -53,7 +54,7 @@ public class BuildRSQLMapper extends AbstractRSQLMapper<Integer, BuildRecord> {
     protected SingularAttribute<BuildRecord, ?> toAttribute(String name) {
         switch (name) {
             case "id":
-                return BuildRecord_.id;
+                return customCastAttribute(BuildRecord_.id, Base64EncodedLong.class);
             case "submitTime":
                 return BuildRecord_.submitTime;
             case "startTime":
@@ -78,5 +79,4 @@ public class BuildRSQLMapper extends AbstractRSQLMapper<Integer, BuildRecord> {
                 return null;
         }
     }
-
 }

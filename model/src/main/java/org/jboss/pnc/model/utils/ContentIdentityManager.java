@@ -23,7 +23,7 @@ package org.jboss.pnc.model.utils;
  */
 public class ContentIdentityManager {
 
-    public static String getBuildContentId(Integer buildRecordId) {
+    public static String getBuildContentId(Long buildRecordId) {
         if (buildRecordId == null)
             throw new IllegalArgumentException("Null is not a valid build content ID");
 

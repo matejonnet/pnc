@@ -35,6 +35,7 @@ import org.jboss.pnc.facade.providers.api.BuildPageInfo;
 import org.jboss.pnc.facade.providers.api.BuildProvider;
 import org.jboss.pnc.facade.providers.api.GroupConfigurationProvider;
 import org.jboss.pnc.facade.validation.InvalidEntityException;
+import org.jboss.pnc.mapper.api.BuildMapper;
 import org.jboss.pnc.rest.api.endpoints.BuildConfigurationEndpoint;
 import org.jboss.pnc.rest.api.parameters.BuildParameters;
 import org.jboss.pnc.rest.api.parameters.BuildsFilterParameters;
@@ -206,9 +207,9 @@ public class BuildConfigurationEndpointImpl implements BuildConfigurationEndpoin
                     buildParams);
 
             BuildOptions buildOptions = toBuildOptions(buildParams);
-            int buildId = buildTriggerer.triggerBuild(Integer.parseInt(id), rev, buildOptions);
+            long buildId = buildTriggerer.triggerBuild(Integer.parseInt(id), rev, buildOptions);
 
-            return buildProvider.getSpecific(Integer.toString(buildId));
+            return buildProvider.getSpecific(BuildMapper.IDMapper.toDtoId(buildId));
         } catch (BuildConflictException | CoreException ex) {
             throw new RuntimeException(ex);
         }

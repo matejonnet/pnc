@@ -98,7 +98,7 @@ public class BuildSetTask {
             finishBuildSetTask();
         } else {
             if (log.isTraceEnabled()) {
-                List<Integer> running = buildTasks.stream()
+                List<Long> running = buildTasks.stream()
                         .filter(bt -> !bt.getStatus().isCompleted())
                         .filter(bt -> !bt.getStatus().hasFailed())
                         .map(BuildTask::getId)

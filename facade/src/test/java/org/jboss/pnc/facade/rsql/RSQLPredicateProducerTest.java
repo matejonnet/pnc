@@ -17,9 +17,11 @@
  */
 package org.jboss.pnc.facade.rsql;
 
+import org.jboss.pnc.common.util.NumberUtils;
 import org.jboss.pnc.dto.BuildConfiguration;
 import org.jboss.pnc.dto.Project;
 import org.jboss.pnc.facade.rsql.mapper.UniversalRSQLMapper;
+import org.jboss.pnc.facade.rsql.mapper.type.Base64EncodedLong;
 import org.jboss.pnc.model.BuildEnvironment;
 import org.jboss.pnc.model.BuildEnvironment_;
 import org.jboss.pnc.model.BuildRecord;
@@ -28,12 +30,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
-import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -43,7 +42,6 @@ import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -52,6 +50,9 @@ import java.util.stream.Collectors;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  *
@@ -75,19 +76,20 @@ public class RSQLPredicateProducerTest {
 
     @Test
     public void testCriteriaPredicate() {
+        long id = 4L;
         org.jboss.pnc.spi.datastore.repositories.api.Predicate<BuildRecord> criteriaPredicate = producer
-                .getCriteriaPredicate(BuildRecord.class, "id==4");
+                .getCriteriaPredicate(BuildRecord.class, "id==" + NumberUtils.decimalToBase64(id));
 
         CriteriaBuilder cb = mock(CriteriaBuilder.class);
         Root<BuildRecord> root = mock(Root.class);
-        Path<Integer> idPath = mock(Path.class);
+        Path<Long> idPath = mock(Path.class);
 
         when(root.get(BuildRecord_.id)).thenReturn(idPath);
-        Mockito.doReturn(Integer.class).when(idPath).getJavaType();
+        Mockito.doReturn(Base64EncodedLong.class).when(idPath).getJavaType();
 
         criteriaPredicate.apply(root, null, cb);
 
-        Mockito.verify(cb).equal(idPath, 4);
+        Mockito.verify(cb).equal(idPath, id);
     }
 
     @Test

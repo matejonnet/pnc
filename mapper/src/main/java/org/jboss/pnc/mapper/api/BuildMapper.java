@@ -27,7 +27,7 @@ import org.jboss.pnc.enums.BuildProgress;
 import org.jboss.pnc.enums.BuildStatus;
 import org.jboss.pnc.mapper.BrewNameWorkaround;
 import org.jboss.pnc.mapper.BuildBCRevisionFetcher;
-import org.jboss.pnc.mapper.IntIdMapper;
+import org.jboss.pnc.mapper.LongBase64IdMapper;
 import org.jboss.pnc.mapper.api.BuildMapper.StatusMapper;
 import org.jboss.pnc.model.BuildRecord;
 import org.jboss.pnc.spi.coordinator.BuildTask;
@@ -51,9 +51,9 @@ import java.util.stream.Collectors;
                 EnvironmentMapper.class, BuildMapper.BuildTaskIdMapper.class, BrewNameWorkaround.class,
                 GroupBuildMapper.class, BuildBCRevisionFetcher.class, ProductMilestoneMapper.class })
 
-public interface BuildMapper extends EntityMapper<Integer, BuildRecord, Build, BuildRef> {
+public interface BuildMapper extends EntityMapper<Long, BuildRecord, Build, BuildRef> {
 
-    IdMapper<Integer, String> idMapper = new IntIdMapper();
+    IdMapper<Long, String> idMapper = new LongBase64IdMapper();
 
     @Override
     @Mapping(target = "id", expression = "java( getIdMapper().toDto(dbEntity.getId()) )")
@@ -185,13 +185,13 @@ public interface BuildMapper extends EntityMapper<Integer, BuildRecord, Build, B
 
     public static class IDMapper {
 
-        public static BuildRecord toIdEntity(Integer id) {
+        public static BuildRecord toIdEntity(Long id) {
             BuildRecord buildRecord = new BuildRecord();
             buildRecord.setId(id);
             return buildRecord;
         }
 
-        public static Integer toId(BuildRecord buildRecord) {
+        public static Long toId(BuildRecord buildRecord) {
             return buildRecord.getId();
         }
     }
@@ -203,7 +203,7 @@ public interface BuildMapper extends EntityMapper<Integer, BuildRecord, Build, B
     }
 
     @Override
-    default IdMapper<Integer, String> getIdMapper() {
+    default IdMapper<Long, String> getIdMapper() {
         return idMapper;
     }
 }

@@ -43,6 +43,7 @@ import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -56,6 +57,7 @@ import static io.restassured.RestAssured.given;
 import static org.jboss.pnc.integration.deployments.Deployments.addBuildExecutorMock;
 import static org.jboss.pnc.integration.env.IntegrationTestEnv.getHttpPort;
 
+@Ignore
 @RunWith(Arquillian.class)
 @Category(ContainerTest.class)
 public class BuildConfigurationSetRestTest extends AbstractTest {

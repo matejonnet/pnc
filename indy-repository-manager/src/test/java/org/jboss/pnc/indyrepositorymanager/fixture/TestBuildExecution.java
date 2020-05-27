@@ -39,7 +39,7 @@ public class TestBuildExecution implements BuildExecution {
     }
 
     @Override
-    public int getId() {
+    public long getId() {
         return id;
     }
 

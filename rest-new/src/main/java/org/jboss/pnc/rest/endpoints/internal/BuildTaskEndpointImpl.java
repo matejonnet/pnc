@@ -32,11 +32,11 @@ import org.jboss.pnc.common.logging.BuildTaskContext;
 import org.jboss.pnc.common.logging.MDCUtils;
 import org.jboss.pnc.facade.executor.BuildExecutorTriggerer;
 import org.jboss.pnc.facade.util.UserService;
+import org.jboss.pnc.facade.validation.InvalidEntityException;
 import org.jboss.pnc.rest.endpoints.internal.api.BuildTaskEndpoint;
-import org.jboss.pnc.rest.restmodel.response.AcceptedResponse;
-import org.jboss.pnc.rest.restmodel.response.Singleton;
+import org.jboss.pnc.rest.response.AcceptedResponse;
+import org.jboss.pnc.rest.response.Singleton;
 import org.jboss.pnc.rest.validation.ValidationBuilder;
-import org.jboss.pnc.rest.validation.exceptions.InvalidEntityException;
 import org.jboss.pnc.rest.validation.groups.WhenCreatingNew;
 import org.jboss.pnc.spi.coordinator.BuildTask;
 import org.jboss.pnc.spi.executor.BuildExecutionSession;
@@ -140,7 +140,8 @@ public class BuildTaskEndpointImpl implements BuildTaskEndpoint {
     }
 
     @Override
-    public Response buildTaskCompletedJson(int buildId, BuildResultRest buildResult) throws InvalidEntityException {
+    public Response buildTaskCompletedJson(int buildId, BuildResultRest buildResult)
+            throws org.jboss.pnc.facade.validation.InvalidEntityException {
         return buildTaskCompleted(buildId, buildResult);
     }
 
@@ -177,7 +178,7 @@ public class BuildTaskEndpointImpl implements BuildTaskEndpoint {
                     .getModuleConfig(new PncConfigProvider<>(UIModuleConfig.class));
             UriBuilder uriBuilder = UriBuilder.fromUri(uiModuleConfig.getPncUrl()).path("/ws/executor/notifications");
 
-            String id = Integer.toString(buildExecutionConfiguration.getId());
+            String id = Long.toString(buildExecutionConfiguration.getId());
             AcceptedResponse acceptedResponse = new AcceptedResponse(id, uriBuilder.build().toString());
 
             return Response.ok().entity(new Singleton(acceptedResponse)).build();
@@ -216,7 +217,7 @@ public class BuildTaskEndpointImpl implements BuildTaskEndpoint {
                     .getModuleConfig(new PncConfigProvider<>(UIModuleConfig.class));
             UriBuilder uriBuilder = UriBuilder.fromUri(uiModuleConfig.getPncUrl()).path("/ws/executor/notifications");
 
-            String id = Integer.toString(buildExecutionConfiguration.getId());
+            String id = Long.toString(buildExecutionConfiguration.getId());
             AcceptedResponse acceptedResponse = new AcceptedResponse(id, uriBuilder.build().toString());
 
             return Response.ok().entity(new Singleton(acceptedResponse)).build();
@@ -229,7 +230,7 @@ public class BuildTaskEndpointImpl implements BuildTaskEndpoint {
     }
 
     @Override
-    public Response cancelBuild(int buildExecutionConfigurationId) {
+    public Response cancelBuild(long buildExecutionConfigurationId) {
 
         logger.debug(
                 "Endpoint /cancel-build requested for buildTaskId [{}], from [{}]",

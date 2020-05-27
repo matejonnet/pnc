@@ -15,30 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.pnc.bpm.causeway;
+package org.jboss.pnc.mapper;
 
-import javax.enterprise.context.ApplicationScoped;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.jboss.pnc.common.util.NumberUtils;
+import org.jboss.pnc.mapper.api.IdMapper;
 
-/**
- * @author <a href="mailto:matejonnet@gmail.com">Matej Lazar</a>
- */
-@ApplicationScoped
-public class InProgress {
-    private Map<Long, String> inProgress = new ConcurrentHashMap<>();
+public class LongBase64IdMapper implements IdMapper<Long, String> {
 
-    public boolean add(Long id, String tagPrefix) {
-        return inProgress.putIfAbsent(id, tagPrefix) == null;
+    @Override
+    public Long toEntity(String id) {
+        return NumberUtils.base64ToDecimal(id);
     }
 
-    public String remove(Long id) {
-        return inProgress.remove(id);
-    }
-
-    public Set<Long> getAllIds() {
-        return Collections.unmodifiableSet(inProgress.keySet());
+    @Override
+    public String toDto(Long id) {
+        return NumberUtils.decimalToBase64(id);
     }
 }

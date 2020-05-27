@@ -123,7 +123,7 @@ public class BuildExecutionSessionMock implements BuildExecutionSession {
                 this.status,
                 status,
                 getId(),
-                buildExecutionConfiguration.getId(),
+                null,
                 buildResult,
                 status.isCompleted());
 
@@ -223,7 +223,7 @@ public class BuildExecutionSessionMock implements BuildExecutionSession {
     }
 
     @Override
-    public Integer getId() {
+    public Long getId() {
         return getBuildExecutionConfiguration().getId();
     }
 

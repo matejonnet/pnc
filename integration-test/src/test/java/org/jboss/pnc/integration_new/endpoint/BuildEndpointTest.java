@@ -160,7 +160,7 @@ public class BuildEndpointTest {
     public void shouldSetBuiltArtifacts() throws RemoteResourceException {
         BuildClient client = new BuildClient(RestClientConfiguration.asSystem());
 
-        String buildRecordId = "1";
+        String buildRecordId = buildId;
         RemoteCollection<Artifact> artifacts = client.getBuiltArtifacts(buildRecordId);
         Set<Integer> artifactIds = artifactIds(artifacts);
         Assertions.assertThat(artifactIds).containsExactlyInAnyOrder(100, 101);
@@ -175,7 +175,7 @@ public class BuildEndpointTest {
     public void shouldSetDependentArtifacts() throws RemoteResourceException {
         BuildClient client = new BuildClient(RestClientConfiguration.asSystem());
 
-        String buildRecordId = "1";
+        String buildRecordId = buildId;
         RemoteCollection<Artifact> artifacts = client.getDependencyArtifacts(buildRecordId);
         Set<Integer> artifactIds = artifactIds(artifacts);
         Assertions.assertThat(artifactIds).contains(104, 105);
@@ -296,7 +296,7 @@ public class BuildEndpointTest {
         BuildClient client = new BuildClient(
                 RestClientConfiguration.getConfiguration(RestClientConfiguration.AuthenticateAs.USER));
 
-        String buildRecordId = "1";
+        String buildRecordId = buildId;
         assertThatThrownBy(() -> client.setBuiltArtifacts(buildRecordId, Collections.emptyList()))
                 .hasCauseInstanceOf(ForbiddenException.class);
 

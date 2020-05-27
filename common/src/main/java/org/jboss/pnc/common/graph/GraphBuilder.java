@@ -35,45 +35,45 @@ public class GraphBuilder<T> {
 
     private final Logger logger = LoggerFactory.getLogger(GraphBuilder.class);
 
-    private List<Integer> missingNodes = new ArrayList<>();
+    private List<Long> missingNodes = new ArrayList<>();
 
-    private Function<Integer, Optional<T>> nodeSupplier;
+    private Function<Long, Optional<T>> nodeSupplier;
 
-    private Function<T, Collection<Integer>> dependencySupplier;
+    private Function<T, Collection<Long>> dependencySupplier;
 
-    private Function<T, Collection<Integer>> dependantSupplier;
+    private Function<T, Collection<Long>> dependantSupplier;
 
     public GraphBuilder(
-            Function<Integer, Optional<T>> nodeSupplier,
-            Function<T, Collection<Integer>> dependencySupplier,
-            Function<T, Collection<Integer>> dependantSupplier) {
+            Function<Long, Optional<T>> nodeSupplier,
+            Function<T, Collection<Long>> dependencySupplier,
+            Function<T, Collection<Long>> dependantSupplier) {
         this.nodeSupplier = nodeSupplier;
         this.dependencySupplier = dependencySupplier;
         this.dependantSupplier = dependantSupplier;
     }
 
-    private Optional<T> getNode(Integer id) {
+    private Optional<T> getNode(Long id) {
         return nodeSupplier.apply(id);
     }
 
-    private Collection<Integer> getDependencyIds(T node) {
+    private Collection<Long> getDependencyIds(T node) {
         return dependencySupplier.apply(node);
     }
 
-    private Collection<Integer> getDependantIds(T node) {
+    private Collection<Long> getDependantIds(T node) {
         return dependantSupplier.apply(node);
     }
 
-    public Vertex<T> buildDependencyGraph(Graph<T> graph, Integer nodeId) {
+    public Vertex<T> buildDependencyGraph(Graph<T> graph, Long nodeId) {
         Optional<T> maybeNode = getNode(nodeId);
         if (maybeNode.isPresent()) {
             T node = maybeNode.get();
             Vertex<T> vertex = getVisited(nodeId, graph);
             if (vertex == null) {
-                vertex = new NameUniqueVertex<>(Integer.toString(nodeId), node);
+                vertex = new NameUniqueVertex<>(Long.toString(nodeId), node);
                 graph.addVertex(vertex);
             }
-            for (Integer dependencyId : getDependencyIds(node)) {
+            for (Long dependencyId : getDependencyIds(node)) {
                 Vertex<T> dependency = getVisited(dependencyId, graph);
                 if (dependency == null) {
                     dependency = buildDependencyGraph(graph, dependencyId);
@@ -91,16 +91,16 @@ public class GraphBuilder<T> {
         }
     }
 
-    public Vertex<T> buildDependentGraph(Graph<T> graph, Integer nodeId) {
+    public Vertex<T> buildDependentGraph(Graph<T> graph, Long nodeId) {
         Optional<T> maybeNode = getNode(nodeId);
         if (maybeNode.isPresent()) {
             T node = maybeNode.get();
             Vertex<T> vertex = getVisited(nodeId, graph);
             if (vertex == null) {
-                vertex = new NameUniqueVertex<>(Integer.toString(nodeId), node);
+                vertex = new NameUniqueVertex<>(Long.toString(nodeId), node);
                 graph.addVertex(vertex);
             }
-            for (Integer dependantId : getDependantIds(node)) {
+            for (Long dependantId : getDependantIds(node)) {
                 Vertex<T> dependant = getVisited(dependantId, graph);
                 if (dependant == null) {
                     dependant = buildDependentGraph(graph, dependantId);
@@ -117,11 +117,11 @@ public class GraphBuilder<T> {
         }
     }
 
-    private Vertex<T> getVisited(Integer nodeId, Graph<T> graph) {
-        return graph.findVertexByName(Integer.toString(nodeId));
+    private Vertex<T> getVisited(Long nodeId, Graph<T> graph) {
+        return graph.findVertexByName(Long.toString(nodeId));
     }
 
-    public List<Integer> getMissingNodes() {
+    public List<Long> getMissingNodes() {
         return missingNodes;
     }
 }

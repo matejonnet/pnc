@@ -87,7 +87,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
                         name = "idx_buildrecord_buildconfiguration_aud",
                         columnList = "buildconfiguration_id,buildconfiguration_rev"),
                 @Index(name = "idx_buildrecord_productmilestone", columnList = "productmilestone_id") })
-public class BuildRecord implements GenericEntity<Integer> {
+public class BuildRecord implements GenericEntity<Long> {
 
     private static final long serialVersionUID = -5472083609387609797L;
 
@@ -96,7 +96,7 @@ public class BuildRecord implements GenericEntity<Integer> {
     private static Logger logger = LoggerFactory.getLogger(BuildRecord.class);
 
     @Id
-    private Integer id;
+    private Long id;
 
     /**
      * Contains the settings that were used at the time the build was executed. Hibernate envers identifies each audited
@@ -346,7 +346,7 @@ public class BuildRecord implements GenericEntity<Integer> {
      *
      * @return the id
      */
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
@@ -356,7 +356,7 @@ public class BuildRecord implements GenericEntity<Integer> {
      * @param id the new id
      */
     @Override
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -778,25 +778,25 @@ public class BuildRecord implements GenericEntity<Integer> {
         this.buildRecordPushResults = buildRecordPushResults;
     }
 
-    public void setDependentBuildRecordIds(Integer[] dependentBuildRecordIds) {
+    public void setDependentBuildRecordIds(Long[] dependentBuildRecordIds) {
         if (dependentBuildRecordIds != null) {
-            this.dependentBuildRecordIds = StringUtils.serializeInt(dependentBuildRecordIds);
+            this.dependentBuildRecordIds = StringUtils.serializeLong(dependentBuildRecordIds);
         } else {
             this.dependentBuildRecordIds = "";
         }
     }
 
-    public Integer[] getDependentBuildRecordIds() {
-        return StringUtils.deserializeInt(dependentBuildRecordIds);
+    public Long[] getDependentBuildRecordIds() {
+        return StringUtils.deserializeLong(dependentBuildRecordIds);
     }
 
-    public Integer[] getDependencyBuildRecordIds() {
-        return StringUtils.deserializeInt(dependencyBuildRecordIds);
+    public Long[] getDependencyBuildRecordIds() {
+        return StringUtils.deserializeLong(dependencyBuildRecordIds);
     }
 
-    public void setDependencyBuildRecordIds(Integer[] dependencyBuildRecordIds) {
+    public void setDependencyBuildRecordIds(Long[] dependencyBuildRecordIds) {
         if (dependencyBuildRecordIds != null) {
-            this.dependencyBuildRecordIds = StringUtils.serializeInt(dependencyBuildRecordIds);
+            this.dependencyBuildRecordIds = StringUtils.serializeLong(dependencyBuildRecordIds);
         } else {
             this.dependencyBuildRecordIds = "";
         }
@@ -824,7 +824,7 @@ public class BuildRecord implements GenericEntity<Integer> {
 
     public static class Builder {
 
-        private Integer id;
+        private Long id;
 
         private String buildContentId;
 
@@ -876,9 +876,9 @@ public class BuildRecord implements GenericEntity<Integer> {
 
         private Map<String, String> attributes = new HashMap<>();
 
-        private Integer[] dependentBuildRecordIds;
+        private Long[] dependentBuildRecordIds;
 
-        private Integer[] dependencyBuildRecordIds;
+        private Long[] dependencyBuildRecordIds;
 
         public Builder() {
             dependencies = new HashSet<>();
@@ -976,7 +976,7 @@ public class BuildRecord implements GenericEntity<Integer> {
             return buildRecord;
         }
 
-        public Builder id(Integer id) {
+        public Builder id(Long id) {
             this.id = id;
             return this;
         }
@@ -1127,12 +1127,12 @@ public class BuildRecord implements GenericEntity<Integer> {
             return this;
         }
 
-        public BuildRecord.Builder dependencyBuildRecordIds(Integer[] dependencyBuildRecordIds) {
+        public BuildRecord.Builder dependencyBuildRecordIds(Long[] dependencyBuildRecordIds) {
             this.dependencyBuildRecordIds = dependencyBuildRecordIds;
             return this;
         }
 
-        public BuildRecord.Builder dependentBuildRecordIds(Integer[] dependentBuildRecordIds) {
+        public BuildRecord.Builder dependentBuildRecordIds(Long[] dependentBuildRecordIds) {
             this.dependentBuildRecordIds = dependentBuildRecordIds;
             return this;
         }

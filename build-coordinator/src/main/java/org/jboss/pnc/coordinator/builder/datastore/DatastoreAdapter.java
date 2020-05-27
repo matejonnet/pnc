@@ -357,20 +357,13 @@ public class DatastoreAdapter {
             builder.buildConfigSetRecord(buildConfigSetRecord);
         }
 
-        List<Integer> dependencies = buildTask.getDependencies()
-                .stream()
-                .map(t -> t.getId())
-                .collect(Collectors.toList());
-        builder.dependencyBuildRecordIds(dependencies.toArray(new Integer[dependencies.size()]));
+        List<Long> dependencies = buildTask.getDependencies().stream().map(t -> t.getId()).collect(Collectors.toList());
+        builder.dependencyBuildRecordIds(dependencies.toArray(new Long[dependencies.size()]));
 
-        List<Integer> dependants = buildTask.getDependants().stream().map(t -> t.getId()).collect(Collectors.toList());
-        builder.dependentBuildRecordIds(dependants.toArray(new Integer[dependants.size()]));
+        List<Long> dependants = buildTask.getDependants().stream().map(t -> t.getId()).collect(Collectors.toList());
+        builder.dependentBuildRecordIds(dependants.toArray(new Long[dependants.size()]));
 
         return builder;
-    }
-
-    public Integer getNextBuildRecordId() {
-        return datastore.getNextBuildRecordId();
     }
 
     public boolean requiresRebuild(

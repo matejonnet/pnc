@@ -33,7 +33,7 @@ import java.util.Map;
 public interface BuildExecutionConfiguration extends BuildExecution {
 
     @Override
-    int getId();
+    long getId();
 
     String getUserId();
 
@@ -64,7 +64,7 @@ public interface BuildExecutionConfiguration extends BuildExecution {
     Map<String, String> getGenericParameters();
 
     static BuildExecutionConfiguration build(
-            int id,
+            Long id,
             String buildContentId,
             String userId,
             String buildScript,
@@ -105,7 +105,7 @@ public interface BuildExecutionConfiguration extends BuildExecution {
     }
 
     static BuildExecutionConfiguration build(
-            int id,
+            long id,
             String buildContentId,
             String userId,
             String buildScript,
@@ -144,7 +144,7 @@ public interface BuildExecutionConfiguration extends BuildExecution {
         return new BuildExecutionConfiguration() {
 
             @Override
-            public int getId() {
+            public long getId() {
                 return id;
             }
 

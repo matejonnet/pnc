@@ -31,6 +31,7 @@ import org.jboss.pnc.rest.restmodel.RepositoryConfigurationRest;
 import org.jboss.pnc.test.category.ContainerTest;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -47,6 +48,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Jakub Bartecek
  */
+@Ignore
 @RunWith(Arquillian.class)
 @Category(ContainerTest.class)
 public class RepositoryConfigurationRestTest extends AbstractTest {

@@ -29,31 +29,31 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-public interface BuildProvider extends Provider<Integer, org.jboss.pnc.model.BuildRecord, Build, BuildRef> {
+public interface BuildProvider extends Provider<Long, org.jboss.pnc.model.BuildRecord, Build, BuildRef> {
 
     /**
      * Get the internal scm archive link for a build record. If the scm revision is not specified in the build record
      * due to a failure, it will return null
      *
-     * @param id build id
+     * @param buildId
      *
      * @return Uri of the internal scm archive link to download
      */
-    URI getInternalScmArchiveLink(String id);
+    URI getInternalScmArchiveLink(String buildId);
 
-    void addAttribute(String id, String key, String value);
+    void addAttribute(String buildId, String key, String value);
 
-    void removeAttribute(String id, String key);
+    void removeAttribute(String buildId, String key);
 
-    BuildConfigurationRevision getBuildConfigurationRevision(String id);
+    BuildConfigurationRevision getBuildConfigurationRevision(String buildId);
 
-    String getRepourLog(String id);
+    String getRepourLog(String buildId);
 
-    String getBuildLog(String id);
+    String getBuildLog(String buildId);
 
-    boolean delete(String id, String callback);
+    boolean delete(String buildId, String callback);
 
-    SSHCredentials getSshCredentials(String id);
+    SSHCredentials getSshCredentials(String buildId);
 
     Page<Build> getAllTemporaryOlderThanTimestamp(int pageIndex, int pageSize, String sort, String q, long timestamp);
 
@@ -82,7 +82,7 @@ public interface BuildProvider extends Provider<Integer, org.jboss.pnc.model.Bui
 
     Graph<Build> getBuildGraphForGroupBuild(String id);
 
-    Graph<Build> getDependencyGraph(String id);
+    Graph<Build> getDependencyGraph(String buildId);
 
     Page<Build> getAllByStatusAndLogContaining(
             int pageIndex,
@@ -92,9 +92,9 @@ public interface BuildProvider extends Provider<Integer, org.jboss.pnc.model.Bui
             BuildStatus status,
             String search);
 
-    void setBuiltArtifacts(String id, List<String> artifactIds);
+    void setBuiltArtifacts(String buildId, List<String> artifactIds);
 
-    void setDependentArtifacts(String id, List<String> artifactIds);
+    void setDependentArtifacts(String buildId, List<String> artifactIds);
 
     Page<Build> getByAttribute(BuildPageInfo pageInfo, Map<String, String> attributeConstraints);
 }

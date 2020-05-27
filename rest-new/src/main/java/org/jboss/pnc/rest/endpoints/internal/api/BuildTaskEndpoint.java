@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jboss.pnc.bpm.model.BuildExecutionConfigurationRest;
 import org.jboss.pnc.bpm.model.BuildExecutionConfigurationWithCallbackRest;
 import org.jboss.pnc.bpm.model.BuildResultRest;
-import org.jboss.pnc.rest.validation.exceptions.InvalidEntityException;
+import org.jboss.pnc.facade.validation.InvalidEntityException;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -120,6 +120,6 @@ public interface BuildTaskEndpoint {
                                                                                      // APPLICATION_FORM_URLENCODED
     public Response cancelBuild(
             @Parameter(
-                    description = "Build Execution Configuration ID. See org.jboss.pnc.spi.executor.BuildExecutionConfiguration.") @PathParam("buildExecutionConfigurationId") int buildExecutionConfigurationId);
+                    description = "Build Execution Configuration ID. See org.jboss.pnc.spi.executor.BuildExecutionConfiguration.") @PathParam("buildExecutionConfigurationId") long buildExecutionConfigurationId);
 
 }

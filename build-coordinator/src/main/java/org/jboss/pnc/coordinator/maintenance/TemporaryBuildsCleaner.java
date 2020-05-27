@@ -17,8 +17,6 @@
  */
 package org.jboss.pnc.coordinator.maintenance;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.jboss.pnc.enums.ArtifactQuality;
 import org.jboss.pnc.enums.ResultStatus;
 import org.jboss.pnc.model.Artifact;
@@ -36,6 +34,8 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Bean providing an interface to delete temporary builds
@@ -78,7 +78,7 @@ public class TemporaryBuildsCleaner {
      * @return true if success
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public Result deleteTemporaryBuild(Integer buildRecordId, String authToken) throws ValidationException {
+    public Result deleteTemporaryBuild(Long buildRecordId, String authToken) throws ValidationException {
         BuildRecord buildRecord = buildRecordRepository.findByIdFetchAllProperties(buildRecordId);
 
         if (buildRecord == null) {
